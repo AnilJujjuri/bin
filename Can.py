@@ -27,3 +27,5 @@ if __name__ == '__main__':
     main()
 OSError: [WinError 10047] An address incompatible with the requested protocol was used
 SocketcanBus was not properly shut down
+Invoke-WebRequest -Uri "https://github.com/linklayer/cantact-app/releases/latest/download/CANtact-win64.zip" -OutFile "CANtact-win64.zip"
+
