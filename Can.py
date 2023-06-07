@@ -25,3 +25,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+OSError: [WinError 10047] An address incompatible with the requested protocol was used
+SocketcanBus was not properly shut down
