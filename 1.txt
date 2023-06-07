@@ -57,3 +57,9 @@ def print_value(item):
 
 if __name__ == "__main__":
     main()
+
+
+Traceback (most recent call last):
+  File "d:\OneDrive - LTTS\Desktop\python_opcua\main.py", line 81, in <module>
+    from opcua.common.callback import DataChangeCallback
+ImportError: cannot import name 'DataChangeCallback' from 'opcua.common.callback' (C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\common\callback.py)
