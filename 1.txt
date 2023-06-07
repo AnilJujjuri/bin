@@ -1,0 +1,59 @@
+from opcua import Client, ua
+from opcua.common.callback import DataChangeCallback
+from opcua.common.subscription import Subscription
+from opcua.common.ua import NodeId, NodeIdType, VariantType
+
+
+def main():
+    client = Client("opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer")
+    client.set_security_string("None")
+    client.application_uri = "urn:RustClient"
+    client.session_timeout = 10000
+    client.connect()
+    print("Client created")
+
+    # Create a subscription and monitored items
+    if subscribe_to_values(client).is_ok():
+        print("Subscribed")
+        client.create_subscription(2000, Subscription())
+    else:
+        print("Error creating subscription")
+
+
+def subscribe_to_values(client):
+    # Create some monitored items
+    items_to_create = [NodeId(3, i) for i in [1003, 1008, 1009, 1010]]
+    monitored_items = client.create_subscription(2000, Subscription()).monitor_items(500, items_to_create)
+
+    def data_change_callback(changed_monitored_items, _):
+        print("Data change from server:")
+        for item in changed_monitored_items:
+            print_value(item)
+
+    monitored_items.add_callback(DataChangeCallback(data_change_callback))
+
+    # Write a value to a node
+    node_id = NodeId(3, 1012)
+    value = ua.Variant(20, ua.VariantType.UInt32)
+    status_code = client.uaclient.write_attributes(node_id, ua.WriteValue(value, ua.AttributeIds.Value))
+
+    if status_code.is_good():
+        print("Value written successfully")
+    else:
+        print(f"Error writing to node: {status_code}")
+
+    print("Created")
+    return status_code
+
+
+def print_value(item):
+    node_id = item.get_item_id()
+    data_value = item.get_value()
+    if data_value.Value.ValueType != VariantType.Null:
+        print(f"Item \"{node_id}\", Value = {data_value.Value.Value}")
+    else:
+        print(f"Item \"{node_id}\", Value not found, error: {data_value.StatusCode}")
+
+
+if __name__ == "__main__":
+    main()
