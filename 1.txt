@@ -1,6 +1,4 @@
 from opcua import Client, ua
-from opcua.common.subscription import Subscription
-from opcua.ua import NodeId, VariantType
 
 
 def main():
@@ -14,26 +12,30 @@ def main():
     # Create a subscription and monitored items
     if subscribe_to_values(client).is_ok():
         print("Subscribed")
-        client.create_subscription(2000, Subscription())
     else:
         print("Error creating subscription")
 
 
 def subscribe_to_values(client):
+    # Create a subscription
+    subscription = client.create_subscription(2000, None)
+
     # Create some monitored items
-    items_to_create = [NodeId(3, i) for i in [1003, 1008, 1009, 1010]]
-    monitored_items = client.create_subscription(2000, Subscription()).monitor_items(500, items_to_create)
+    items_to_create = [ua.NodeId(3, i) for i in [1003, 1008, 1009, 1010]]
+    monitored_items = subscription.subscribe_data_change(items_to_create)
 
-    def data_change_callback(monitored_item, data_value, _):
+    # Define a callback function for data changes
+    def data_change_callback(_, data_value):
         print("Data change from server:")
-        print_value(monitored_item, data_value)
+        print_value(data_value)
 
-    monitored_items.set_callback(data_change_callback)
+    # Set the callback function for the monitored items
+    monitored_items.add_callback(data_change_callback)
 
     # Write a value to a node
-    node_id = NodeId(3, 1012)
+    node_id = ua.NodeId(3, 1012)
     value = ua.Variant(20, ua.VariantType.UInt32)
-    status_code = client.uaclient.write_attribute(node_id, ua.AttributeIds.Value, value)
+    status_code = client.uaclient.write_attributes(node_id, ua.WriteValue(value, ua.AttributeIds.Value))
 
     if status_code.is_good():
         print("Value written successfully")
@@ -44,12 +46,11 @@ def subscribe_to_values(client):
     return status_code
 
 
-def print_value(monitored_item, data_value):
-    node_id = monitored_item.get_item_id()
-    if data_value.Value.ValueType != VariantType.Null:
-        print(f"Item \"{node_id}\", Value = {data_value.Value.Value}")
+def print_value(data_value):
+    if data_value.Value.ValueType != ua.VariantType.Null:
+        print(f"Value = {data_value.Value.Value}")
     else:
-        print(f"Item \"{node_id}\", Value not found, error: {data_value.StatusCode}")
+        print(f"Value not found, error: {data_value.StatusCode}")
 
 
 if __name__ == "__main__":
