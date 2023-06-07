@@ -1,7 +1,6 @@
 from opcua import Client, ua
-from opcua.common.callback import DataChangeCallback
 from opcua.common.subscription import Subscription
-from opcua.ua import NodeId, NodeIdType, VariantType
+from opcua.ua import NodeId, VariantType
 
 
 def main():
@@ -25,12 +24,11 @@ def subscribe_to_values(client):
     items_to_create = [NodeId(3, i) for i in [1003, 1008, 1009, 1010]]
     monitored_items = client.create_subscription(2000, Subscription()).monitor_items(500, items_to_create)
 
-    def data_change_callback(changed_monitored_items, _):
+    def data_change_callback(monitored_item, data_value, _):
         print("Data change from server:")
-        for item in changed_monitored_items:
-            print_value(item)
+        print_value(monitored_item, data_value)
 
-    monitored_items.add_callback(DataChangeCallback(data_change_callback))
+    monitored_items.set_callback(data_change_callback)
 
     # Write a value to a node
     node_id = NodeId(3, 1012)
@@ -46,9 +44,8 @@ def subscribe_to_values(client):
     return status_code
 
 
-def print_value(item):
-    node_id = item.get_item_id()
-    data_value = item.get_value()
+def print_value(monitored_item, data_value):
+    node_id = monitored_item.get_item_id()
     if data_value.Value.ValueType != VariantType.Null:
         print(f"Item \"{node_id}\", Value = {data_value.Value.Value}")
     else:
