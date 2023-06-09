@@ -322,3 +322,20 @@ def main():
 if __name__ == '__main__':
     main()
 
+Sent message: ID=0x64, Data=[170, 187, 204]
+Sent message: ID=0x65, Data=[170, 187, 204]
+Exception in thread Thread-1 (periodic_message_sender):
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\threading.py", line 953, in run
+    self._target(*self._args, **self._kwargs)
+  File "d:\OneDrive - LTTS\Desktop\Can_basic\EdgeSolution\EdgeSolution\modules\SampleModule\period.py", line 45, in periodic_message_sender
+    send_can_message(bus, message_id, periodic_message_data)
+  File "d:\OneDrive - LTTS\Desktop\Can_basic\EdgeSolution\EdgeSolution\modules\SampleModule\period.py", line 17, in send_can_message
+    bus.send(message)
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\can\interfaces\virtual.py", line 104, in send
+    self._check_if_open()
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\can\interfaces\virtual.py", line 90, in _check_if_open
+    raise CanOperationError("Cannot operate on a closed bus")
+can.exceptions.CanOperationError: Cannot operate on a closed bus
