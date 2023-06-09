@@ -116,3 +116,73 @@ Traceback (most recent call last):
   File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\threading.py", line 930, in start
     raise RuntimeError("threads can only be started once")
 RuntimeError: threads can only be started once
+import can
+import threading
+
+# Define the desired message ID range
+start_id = 100
+end_id = 200
+
+# Message counters
+sent_message_count = 0
+received_message_count = 0
+
+
+def send_can_message(bus, arbitration_id, data):
+    global sent_message_count
+
+    message = can.Message(arbitration_id=arbitration_id, data=data)
+    bus.send(message)
+    sent_message_count += 1
+    print(f"Sent message: ID={hex(arbitration_id)}, Data={data}")
+
+
+def receive_can_messages(bus):
+    global received_message_count
+
+    while True:
+        message = bus.recv(timeout=1.0)
+        if message is None:
+            break
+
+        received_message_count += 1
+        print(f"Received message: ID={hex(message.arbitration_id)}, Data={message.data}")
+
+
+def periodic_message_sender(bus):
+    # Define the periodic message details
+    periodic_message_data = [0xAA, 0xBB, 0xCC]
+    period_sec = 1.0
+
+    for message_id in range(start_id, end_id + 1):
+        send_can_message(bus, message_id, periodic_message_data)
+        threading.Event().wait(period_sec)
+
+
+def main():
+    # Create a CAN bus interface with Virtual CAN
+    bus = can.interface.Bus(bustype='virtual', channel='vcan0')
+
+    # Create and start the thread for periodic message sending
+    sender_thread = threading.Thread(target=periodic_message_sender, args=(bus,))
+    sender_thread.start()
+
+    try:
+        # Create and start the thread for receiving CAN messages
+        receiver_thread = threading.Thread(target=receive_can_messages, args=(bus,))
+        receiver_thread.start()
+
+        # Wait for the threads to complete
+        sender_thread.join()
+        receiver_thread.join()
+
+    except can.CanError as e:
+        print("CAN error:", str(e))
+
+    finally:
+        # Properly shut down the CAN bus interface
+        bus.shutdown()
+
+
+if __name__ == '__main__':
+    main()
