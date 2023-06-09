@@ -339,3 +339,43 @@ Traceback (most recent call last):
   File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\can\interfaces\virtual.py", line 90, in _check_if_open
     raise CanOperationError("Cannot operate on a closed bus")
 can.exceptions.CanOperationError: Cannot operate on a closed bus
+
+import can
+from can.interfaces.virtual import VirtualBus
+import threading
+
+def send_can_message(bus, message_id, message_data):
+    message = can.Message(arbitration_id=message_id, data=message_data, extended_id=False)
+    bus.send(message)
+    print(f"Sent message: ID=0x{message_id:02x}, Data={message_data}")
+
+def receive_can_messages(bus):
+    for message in bus:
+        print(f"Received message: ID=0x{message.arbitration_id:02x}, Data={message.data}")
+
+def periodic_message_sender(bus, message_id_list, message_data):
+    for message_id in message_id_list:
+        send_can_message(bus, message_id, message_data)
+
+def main():
+    bus = VirtualBus(channel="vcan0")
+    bus.start()
+
+    message_id_list = list(range(0x64, 0xC9))  # Message IDs from 0x64 to 0xC8
+    message_data = [170, 187, 204]  # Example message data
+
+    sender_thread = threading.Thread(target=periodic_message_sender, args=(bus, message_id_list, message_data))
+    sender_thread.start()
+
+    receiver_thread = threading.Thread(target=receive_can_messages, args=(bus,))
+    receiver_thread.start()
+
+    # Wait for the sender thread to complete
+    sender_thread.join()
+
+    # Stop the receiver thread by stopping the bus
+    bus.stop()
+    receiver_thread.join()
+
+if __name__ == "__main__":
+    main()
