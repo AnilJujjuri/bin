@@ -84,3 +84,29 @@ def stop_can():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+OSError: [Errno 19] No such device
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/flask/app.py", line 2213, in __ca                                                                                        ll__
+    return self.wsgi_app(environ, start_response)
+  File "/usr/local/lib/python3.8/dist-packages/flask/app.py", line 2193, in wsgi                                                                                        _app
+    response = self.handle_exception(e)
+  File "/usr/local/lib/python3.8/dist-packages/flask/app.py", line 2190, in wsgi                                                                                        _app
+    response = self.full_dispatch_request()
+  File "/usr/local/lib/python3.8/dist-packages/flask/app.py", line 1486, in full                                                                                        _dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/usr/local/lib/python3.8/dist-packages/flask/app.py", line 1484, in full                                                                                        _dispatch_request
+    rv = self.dispatch_request()
+  File "/usr/local/lib/python3.8/dist-packages/flask/app.py", line 1469, in disp                                                                                        atch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/home/Machine1/can/con.py", line 56, in start_can
+    bus = can.interface.Bus(channel=can_channel, bustype=can_interface, bitrate=                                                                                        baud_rate)
+  File "/usr/local/lib/python3.8/dist-packages/can/util.py", line 369, in wrappe                                                                                        r
+    return f(*args, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/can/interface.py", line 138, in _                                                                                        _new__
+    bus = cls(channel, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/can/interfaces/socketcan/socketca                                                                                        n.py", line 705, in __init__
+    bind_socket(self.socket, channel)
+  File "/usr/local/lib/python3.8/dist-packages/can/interfaces/socketcan/socketca                                                                                        n.py", line 512, in bind_socket
+    sock.bind((channel,))
