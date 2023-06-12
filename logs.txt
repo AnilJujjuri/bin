@@ -1,381 +1,86 @@
-Sent message: ID=0x64, Data=[170, 187, 204]
-Sent message: ID=0x65, Data=[170, 187, 204]
-Sent message: ID=0x66, Data=[170, 187, 204]
-Sent message: ID=0x67, Data=[170, 187, 204]
-Sent message: ID=0x68, Data=[170, 187, 204]
-Sent message: ID=0x69, Data=[170, 187, 204]
-Sent message: ID=0x6a, Data=[170, 187, 204]
-Sent message: ID=0x6b, Data=[170, 187, 204]
-Sent message: ID=0x6c, Data=[170, 187, 204]
-Sent message: ID=0x6d, Data=[170, 187, 204]
-Sent message: ID=0x6e, Data=[170, 187, 204]
-Sent message: ID=0x6f, Data=[170, 187, 204]
-Sent message: ID=0x70, Data=[170, 187, 204]
-Sent message: ID=0x71, Data=[170, 187, 204]
-Sent message: ID=0x72, Data=[170, 187, 204]
-Sent message: ID=0x73, Data=[170, 187, 204]
-Sent message: ID=0x74, Data=[170, 187, 204]
-Sent message: ID=0x75, Data=[170, 187, 204]
-Sent message: ID=0x76, Data=[170, 187, 204]
-Sent message: ID=0x77, Data=[170, 187, 204]
-Sent message: ID=0x78, Data=[170, 187, 204]
-Sent message: ID=0x79, Data=[170, 187, 204]
-Sent message: ID=0x7a, Data=[170, 187, 204]
-Sent message: ID=0x7b, Data=[170, 187, 204]
-Sent message: ID=0x7c, Data=[170, 187, 204]
-Sent message: ID=0x7d, Data=[170, 187, 204]
-Sent message: ID=0x7e, Data=[170, 187, 204]
-Sent message: ID=0x7f, Data=[170, 187, 204]
-Sent message: ID=0x80, Data=[170, 187, 204]
-Sent message: ID=0x81, Data=[170, 187, 204]
-Sent message: ID=0x82, Data=[170, 187, 204]
-Sent message: ID=0x83, Data=[170, 187, 204]
-Sent message: ID=0x84, Data=[170, 187, 204]
-Sent message: ID=0x85, Data=[170, 187, 204]
-Sent message: ID=0x86, Data=[170, 187, 204]
-Sent message: ID=0x87, Data=[170, 187, 204]
-Sent message: ID=0x88, Data=[170, 187, 204]
-Sent message: ID=0x89, Data=[170, 187, 204]
-Sent message: ID=0x8a, Data=[170, 187, 204]
-Sent message: ID=0x8b, Data=[170, 187, 204]
-Sent message: ID=0x8c, Data=[170, 187, 204]
-Sent message: ID=0x8d, Data=[170, 187, 204]
-Sent message: ID=0x8e, Data=[170, 187, 204]
-Sent message: ID=0x8f, Data=[170, 187, 204]
-Sent message: ID=0x90, Data=[170, 187, 204]
-Sent message: ID=0x91, Data=[170, 187, 204]
-Sent message: ID=0x92, Data=[170, 187, 204]
-Sent message: ID=0x93, Data=[170, 187, 204]
-Sent message: ID=0x94, Data=[170, 187, 204]
-Sent message: ID=0x95, Data=[170, 187, 204]
-Sent message: ID=0x96, Data=[170, 187, 204]
-Sent message: ID=0x97, Data=[170, 187, 204]
-Sent message: ID=0x98, Data=[170, 187, 204]
-Sent message: ID=0x99, Data=[170, 187, 204]
-Sent message: ID=0x9a, Data=[170, 187, 204]
-Sent message: ID=0x9b, Data=[170, 187, 204]
-Sent message: ID=0x9c, Data=[170, 187, 204]
-Sent message: ID=0x9d, Data=[170, 187, 204]
-Sent message: ID=0x9e, Data=[170, 187, 204]
-Sent message: ID=0x9f, Data=[170, 187, 204]
-Sent message: ID=0xa0, Data=[170, 187, 204]
-Sent message: ID=0xa1, Data=[170, 187, 204]
-Sent message: ID=0xa2, Data=[170, 187, 204]
-Sent message: ID=0xa3, Data=[170, 187, 204]
-Sent message: ID=0xa4, Data=[170, 187, 204]
-Sent message: ID=0xa5, Data=[170, 187, 204]
-Sent message: ID=0xa6, Data=[170, 187, 204]
-Sent message: ID=0xa7, Data=[170, 187, 204]
-Sent message: ID=0xa8, Data=[170, 187, 204]
-Sent message: ID=0xa9, Data=[170, 187, 204]
-Sent message: ID=0xaa, Data=[170, 187, 204]
-Sent message: ID=0xab, Data=[170, 187, 204]
-Sent message: ID=0xac, Data=[170, 187, 204]
-Sent message: ID=0xad, Data=[170, 187, 204]
-Sent message: ID=0xae, Data=[170, 187, 204]
-Sent message: ID=0xaf, Data=[170, 187, 204]
-Sent message: ID=0xb0, Data=[170, 187, 204]
-Sent message: ID=0xb1, Data=[170, 187, 204]
-Sent message: ID=0xb2, Data=[170, 187, 204]
-Sent message: ID=0xb3, Data=[170, 187, 204]
-Sent message: ID=0xb4, Data=[170, 187, 204]
-Sent message: ID=0xb5, Data=[170, 187, 204]
-Sent message: ID=0xb6, Data=[170, 187, 204]
-Sent message: ID=0xb7, Data=[170, 187, 204]
-Sent message: ID=0xb8, Data=[170, 187, 204]
-Sent message: ID=0xb9, Data=[170, 187, 204]
-Sent message: ID=0xba, Data=[170, 187, 204]
-Sent message: ID=0xbb, Data=[170, 187, 204]
-Sent message: ID=0xbc, Data=[170, 187, 204]
-Sent message: ID=0xbd, Data=[170, 187, 204]
-Sent message: ID=0xbe, Data=[170, 187, 204]
-Sent message: ID=0xbf, Data=[170, 187, 204]
-Sent message: ID=0xc0, Data=[170, 187, 204]
-Sent message: ID=0xc1, Data=[170, 187, 204]
-Sent message: ID=0xc2, Data=[170, 187, 204]
-Sent message: ID=0xc3, Data=[170, 187, 204]
-Sent message: ID=0xc4, Data=[170, 187, 204]
-Sent message: ID=0xc5, Data=[170, 187, 204]
-Sent message: ID=0xc6, Data=[170, 187, 204]
-Sent message: ID=0xc7, Data=[170, 187, 204]
-Sent message: ID=0xc8, Data=[170, 187, 204]
-Exception in thread Thread-1 (periodic_message_sender):
-Traceback (most recent call last):
-  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\threading.py", line 1016, in _bootstrap_inner
-    self.run()
-  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\threading.py", line 953, in run
-    self._target(*self._args, **self._kwargs)
-  File "d:\OneDrive - LTTS\Desktop\Can_basic\EdgeSolution\EdgeSolution\modules\SampleModule\main.py", line 39, in periodic_message_sender
-    for message_id in message_id:
-TypeError: 'int' object is not iterable
-Traceback (most recent call last):
-  File "d:\OneDrive - LTTS\Desktop\Can_basic\EdgeSolution\EdgeSolution\modules\SampleModule\main.py", line 72, in <module>
-    main()
-  File "d:\OneDrive - LTTS\Desktop\Can_basic\EdgeSolution\EdgeSolution\modules\SampleModule\main.py", line 55, in main
-    sender_thread.start()
-  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\threading.py", line 930, in start
-    raise RuntimeError("threads can only be started once")
-RuntimeError: threads can only be started once
 import can
-import threading
+import csv
+import time
+from threading import Thread
+from flask import Flask, jsonify
 
-# Define the desired message ID range
-start_id = 100
-end_id = 200
+app = Flask(__name__)
+bus = None
+sender_thread = None
 
-# Message counters
-sent_message_count = 0
-received_message_count = 0
-
-
-def send_can_message(bus, arbitration_id, data):
-    global sent_message_count
-
-    message = can.Message(arbitration_id=arbitration_id, data=data)
+def send_can_message(bus, message_id, message_data, csv_writer):
+    message = can.Message(
+        arbitration_id=message_id,
+        data=message_data,
+        is_extended_id=False
+    )
     bus.send(message)
-    sent_message_count += 1
-    print(f"Sent message: ID={hex(arbitration_id)}, Data={data}")
+    print(f"Sent message: ID=0x{message_id:x}, Data={message_data}")
+    csv_writer.writerows([[message_id, message_data]])
 
 
 def receive_can_messages(bus):
-    global received_message_count
-
-    while True:
-        message = bus.recv(timeout=1.0)
-        if message is None:
-            break
-
-        received_message_count += 1
-        print(f"Received message: ID={hex(message.arbitration_id)}, Data={message.data}")
-
-
-def periodic_message_sender(bus):
-    # Define the periodic message details
-    periodic_message_data = [0xAA, 0xBB, 0xCC]
-    period_sec = 1.0
-
-    for message_id in range(start_id, end_id + 1):
-        send_can_message(bus, message_id, periodic_message_data)
-        threading.Event().wait(period_sec)
-
-
-def main():
-    # Create a CAN bus interface with Virtual CAN
-    bus = can.interface.Bus(bustype='virtual', channel='vcan0')
-
-    # Create and start the thread for periodic message sending
-    sender_thread = threading.Thread(target=periodic_message_sender, args=(bus,))
-    sender_thread.start()
-
     try:
-        # Create and start the thread for receiving CAN messages
-        receiver_thread = threading.Thread(target=receive_can_messages, args=(bus,))
-        receiver_thread.start()
+        while True:
+            message = bus.recv(timeout=1)
+            if message is not None:
+                print(f"Received message: ID=0x{message.arbitration_id:x}, Data={message.data}")
+    except can.CanError as e:
+        print(f"Exception in thread {Thread.current_thread().name}: {e}")
 
-        # Wait for the threads to complete
+
+def periodic_message_sender(bus, csv_writer):
+    for message_id in range(0xC7, 0xC9 + 1):
+        message_data = [170, 187, 204]
+        send_can_message(bus, message_id, message_data, csv_writer)
+        time.sleep(1)
+
+
+@app.route('/')
+def index():
+    return "Welcome to the CAN API!"
+
+
+@app.route('/start')
+def start_can():
+    global bus
+    global sender_thread
+
+    if bus is None:
+        # Set the CAN interface and baud rate
+        can_interface = 'socketcan'  # Use 'socketcan' for Linux SocketCAN interface
+        can_channel = 'vcan0'  # Replace with the actual CAN interface channel
+        baud_rate = 500000  # Replace with the desired baud rate
+
+        # Create the CAN bus
+        bus = can.interface.Bus(channel=can_channel, bustype=can_interface, bitrate=baud_rate)
+
+        with open('sent_messages.csv', 'w', newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerow(['ID', 'Data'])  # Write header to CSV
+
+            sender_thread = Thread(target=periodic_message_sender, args=(bus, csv_writer))
+            sender_thread.start()
+
+        return jsonify({'status': 'success', 'message': 'CAN messaging started.'})
+    else:
+        return jsonify({'status': 'error', 'message': 'CAN messaging already started.'})
+
+
+@app.route('/stop')
+def stop_can():
+    global bus
+    global sender_thread
+
+    if bus is not None:
         sender_thread.join()
-        receiver_thread.join()
-
-    except can.CanError as e:
-        print("CAN error:", str(e))
-
-    finally:
-        # Properly shut down the CAN bus interface
         bus.shutdown()
+        bus = None
+        sender_thread = None
+        return jsonify({'status': 'success', 'message': 'CAN messaging stopped.'})
+    else:
+        return jsonify({'status': 'error', 'message': 'CAN messaging not started.'})
 
-
-if __name__ == '__main__':
-    main()
-import can
-import threading
-
-# Define the desired message ID range
-start_id = 100
-end_id = 200
-
-# Message counters
-sent_message_count = 0
-received_message_count = 0
-
-
-def send_can_message(bus, arbitration_id, data):
-    global sent_message_count
-
-    message = can.Message(arbitration_id=arbitration_id, data=data)
-    bus.send(message)
-    sent_message_count += 1
-    print(f"Sent message: ID={hex(arbitration_id)}, Data={data}")
-
-
-def receive_can_messages(bus):
-    global received_message_count
-
-    while True:
-        message = bus.recv(timeout=1.0)
-        if message is None:
-            break
-
-        received_message_count += 1
-        print(f"Received message: ID={hex(message.arbitration_id)}, Data={message.data}")
-
-
-def periodic_message_sender(bus):
-    # Define the periodic message details
-    periodic_message_data = [0xAA, 0xBB, 0xCC]
-    period_sec = 1.0
-
-    for message_id in range(start_id, end_id + 1):
-        send_can_message(bus, message_id, periodic_message_data)
-        threading.Event().wait(period_sec)
-
-
-def main():
-    # Create a CAN bus interface with Virtual CAN
-    bus = can.interface.Bus(bustype='virtual', channel='vcan0')
-
-    # Create and start the thread for periodic message sending
-    sender_thread = threading.Thread(target=periodic_message_sender, args=(bus,))
-    sender_thread.start()
-
-    try:
-        # Receive and print the CAN messages continuously
-        receive_can_messages(bus)
-
-    except can.CanError as e:
-        print("CAN error:", str(e))
-
-    finally:
-        # Properly shut down the CAN bus interface
-        bus.shutdown()
-
-
-if __name__ == '__main__':
-    main()
-import can
-import threading
-
-# Define the desired message ID range
-start_id = 100
-end_id = 200
-
-# Message counters
-sent_message_count = 0
-received_message_count = 0
-
-
-def send_can_message(bus, arbitration_id, data):
-    global sent_message_count
-
-    message = can.Message(arbitration_id=arbitration_id, data=data)
-    bus.send(message)
-    sent_message_count += 1
-    print(f"Sent message: ID={hex(arbitration_id)}, Data={data}")
-
-
-def receive_can_messages(bus):
-    global received_message_count
-
-    while True:
-        try:
-            message = bus.recv(timeout=1.0)
-            if message is None:
-                break
-
-            received_message_count += 1
-            print(f"Received message: ID={hex(message.arbitration_id)}, Data={message.data}")
-
-        except can.CanError as e:
-            print("CAN error:", str(e))
-            break
-
-
-def periodic_message_sender(bus):
-    # Define the periodic message details
-    periodic_message_data = [0xAA, 0xBB, 0xCC]
-    period_sec = 1.0
-
-    for message_id in range(start_id, end_id + 1):
-        send_can_message(bus, message_id, periodic_message_data)
-        threading.Event().wait(period_sec)
-
-
-def main():
-    # Create a CAN bus interface with Virtual CAN
-    bus = can.interface.Bus(bustype='virtual', channel='vcan0')
-
-    try:
-        # Create and start the thread for periodic message sending
-        sender_thread = threading.Thread(target=periodic_message_sender, args=(bus,))
-        sender_thread.start()
-
-        # Receive and print the CAN messages continuously
-        receive_can_messages(bus)
-
-    except can.CanError as e:
-        print("CAN error:", str(e))
-
-    finally:
-        # Properly shut down the CAN bus interface
-        bus.shutdown()
-
-
-if __name__ == '__main__':
-    main()
-
-Sent message: ID=0x64, Data=[170, 187, 204]
-Sent message: ID=0x65, Data=[170, 187, 204]
-Exception in thread Thread-1 (periodic_message_sender):
-Traceback (most recent call last):
-  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\threading.py", line 1016, in _bootstrap_inner
-    self.run()
-  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\threading.py", line 953, in run
-    self._target(*self._args, **self._kwargs)
-  File "d:\OneDrive - LTTS\Desktop\Can_basic\EdgeSolution\EdgeSolution\modules\SampleModule\period.py", line 45, in periodic_message_sender
-    send_can_message(bus, message_id, periodic_message_data)
-  File "d:\OneDrive - LTTS\Desktop\Can_basic\EdgeSolution\EdgeSolution\modules\SampleModule\period.py", line 17, in send_can_message
-    bus.send(message)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\can\interfaces\virtual.py", line 104, in send
-    self._check_if_open()
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\can\interfaces\virtual.py", line 90, in _check_if_open
-    raise CanOperationError("Cannot operate on a closed bus")
-can.exceptions.CanOperationError: Cannot operate on a closed bus
-
-import can
-from can.interfaces.virtual import VirtualBus
-import threading
-
-def send_can_message(bus, message_id, message_data):
-    message = can.Message(arbitration_id=message_id, data=message_data, extended_id=False)
-    bus.send(message)
-    print(f"Sent message: ID=0x{message_id:02x}, Data={message_data}")
-
-def receive_can_messages(bus):
-    for message in bus:
-        print(f"Received message: ID=0x{message.arbitration_id:02x}, Data={message.data}")
-
-def periodic_message_sender(bus, message_id_list, message_data):
-    for message_id in message_id_list:
-        send_can_message(bus, message_id, message_data)
-
-def main():
-    bus = VirtualBus(channel="vcan0")
-    bus.start()
-
-    message_id_list = list(range(0x64, 0xC9))  # Message IDs from 0x64 to 0xC8
-    message_data = [170, 187, 204]  # Example message data
-
-    sender_thread = threading.Thread(target=periodic_message_sender, args=(bus, message_id_list, message_data))
-    sender_thread.start()
-
-    receiver_thread = threading.Thread(target=receive_can_messages, args=(bus,))
-    receiver_thread.start()
-
-    # Wait for the sender thread to complete
-    sender_thread.join()
-
-    # Stop the receiver thread by stopping the bus
-    bus.stop()
-    receiver_thread.join()
 
 if __name__ == "__main__":
-    main()
+    app.run(debug=True)
