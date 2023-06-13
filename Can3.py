@@ -1,28 +1,46 @@
-import can
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
+import time
 
 app = Flask(__name__)
 
-# Set up CAN interface
-can_interface = "vcan0"
-bus = can.interface.Bus(channel=can_interface, bustype="socketcan")
+# Simulated CAN message storage
+received_messages = []
 
-@app.route("/")
-def home():
-    return "CAN API"
+# Simulated periodic message sender
+def send_periodic_message():
+    while True:
+        # Simulate sending a periodic CAN message
+        message = {'id': 0x123, 'data': [0x01, 0x02, 0x03]}
+        received_messages.append(message)
 
-@app.route("/send/<int:id>/<int:data>")
-def send_can_message(id, data):
-    message = can.Message(arbitration_id=id, data=[data], extended_id=False)
-    bus.send(message)
-    return jsonify({"status": "success"})
+        time.sleep(1)  # Wait for 1 second
 
-@app.route("/receive")
-def receive_can_message():
-    message = bus.recv()
-    return jsonify({"id": message.arbitration_id, "data": message.data[0]})
+# Start the periodic message sender in a separate thread
+import threading
+t = threading.Thread(target=send_periodic_message)
+t.start()
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+# API endpoint to retrieve received messages
+@app.route('/api/messages', methods=['GET'])
+def get_messages():
+    return jsonify(received_messages)
 
+# API endpoint to send a CAN message
+@app.route('/api/messages', methods=['POST'])
+def send_message():
+    if not request.json or 'id' not in request.json or 'data' not in request.json:
+        return jsonify({'error': 'Invalid request'}), 400
+
+    message = {
+        'id': request.json['id'],
+        'data': request.json['data']
+    }
     
+    # Simulate receiving a CAN message
+    received_messages.append(message)
+
+    return jsonify({'success': True}), 201
+
+# Run the Flask application
+if __name__ == '__main__':
+    app.run(debug=True)
