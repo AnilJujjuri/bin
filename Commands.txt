@@ -1,0 +1,18 @@
+
+sudo apt-get update
+sudo apt-get install build-essential linux-headers-$(uname -r)
+
+wget https://www.can-wiki.info/_media/socketcan/can4linux-4.9.5.tar.bz2
+
+tar -xvf can4linux-4.9.5.tar.bz2
+cd can4linux-4.9.5
+
+make
+sudo make install
+
+sudo modprobe can4linuxcan4linux
+sudo ip link add dev vcan0 type vcan
+
+sudo ip link set up vcan0
+
+
