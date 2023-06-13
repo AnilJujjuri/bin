@@ -1,68 +1,51 @@
 import can
-import threading
-
-# Define the desired message IDs to filter
-desired_message_ids = [0x100, 0x200]
-
-# Message counters
-sent_message_count = 0
-received_message_count = 0
+import time
+import csv
+from threading import Thread
 
 
-def send_can_message(bus, arbitration_id, data):
-    global sent_message_count
-
-    message = can.Message(arbitration_id=arbitration_id, data=data)
+def send_can_message(bus, message_id, message_data,csv_writer):
+    message = can.Message(
+        arbitration_id=message_id,
+        data=message_data,
+        is_extended_id=False
+    )
     bus.send(message)
-    sent_message_count += 1
-    print(f"Sent message: ID={hex(arbitration_id)}, Data={data}")
+    print(f"Sent message: ID=0x{message_id:x}, Data={message_data}")
+    csv_writer.writerow([message_id, message_data])
 
-
-def receive_can_messages(bus):
-    global received_message_count
-
+def receive_can_messages(bus,):
+   try:
     while True:
-        message = bus.recv(timeout=1.0)
-        if message is None:
-            break
+        message = bus.recv(timeout=1)
+        if message is not None:
+            print(f"Received message: ID=0x{message.arbitration_id:x}, Data={message.data}")
+   except Exception as e:
+       print(f"Exception ")
 
-        received_message_count += 1
-        print(f"Received message: ID={hex(message.arbitration_id)}, Data={message.data}")
 
-
-def periodic_message_sender(bus):
-    # Define the periodic message details
-    periodic_message_id = 0x300
-    periodic_message_data = [0xAA, 0xBB, 0xCC]
-    period_sec = 1.0
-
-    while True:
-        send_can_message(bus, periodic_message_id, periodic_message_data)
-        threading.Event().wait(period_sec)
+def periodic_message_sender(bus,csv_writer):
+    for message_id in range(0x64, 0xC9):
+        message_data = [170, 187, 204]
+        send_can_message(bus, message_id, message_data,csv_writer)
+    
 
 
 def main():
-    # Create a CAN bus interface with Virtual CAN
-    bus = can.interface.Bus(bustype='virtual', channel='vcan0')
+    bus = can.Bus(interface='virtual', channel='vcan0')
+    with open('sent_messages.csv','w',newline='') as csvfile:
+        csv_writer=csv.writer(csvfile)
+        csv_writer.writerow(["ID", "Data"])
+        receiver_thread = Thread(target=receive_can_messages, args=(bus,))
+        sender_thread = Thread(target=periodic_message_sender, args=(bus,csv_writer))
 
-    # Create and start the thread for periodic message sending
-    sender_thread = threading.Thread(target=periodic_message_sender, args=(bus,))
-    sender_thread.start()
+        receiver_thread.start()
+        sender_thread.start()
 
-    try:
-        # Start receiving CAN messages
-        receive_can_messages(bus)
-
-    except can.CanError as e:
-        print("CAN error:", str(e))
-
-    finally:
-        # Stop the sender thread
         sender_thread.join()
 
-        # Properly shut down the CAN bus interface
-        bus.shutdown()
+    bus.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
