@@ -1,23 +1,19 @@
-from flask import Flask
-from flask import request
+from flask import Flask, request, jsonify
 import can
-import time
-import csv
 from threading import Thread
 
 app = Flask(__name__)
 bus = None
 received_messages = []
 
-def send_can_message(message_id, message_data, csv_writer):
+def send_can_message(message_id, message_data):
     message = can.Message(
-        arbitration_id=message_id,
-        data=message_data,
+        arbitration_id=int(message_id, 16),
+        data=bytes.fromhex(message_data),
         is_extended_id=False
     )
     bus.send(message)
-    print(f"Sent message: ID=0x{message_id:x}, Data={message_data}")
-    csv_writer.writerow([message_id, message_data])
+    print(f"Sent message: ID=0x{message_id}, Data={message_data}")
 
 def receive_can_messages():
     try:
@@ -27,39 +23,29 @@ def receive_can_messages():
                 print(f"Received message: ID=0x{message.arbitration_id:x}, Data={message.data}")
                 received_messages.append({
                     'id': message.arbitration_id,
-                    'data': message.data,
+                    'data': message.data.hex(),
                 })
     except Exception as e:
-        print(f"Exception: {e}")
-
-def periodic_message_sender(csv_writer):
-    for message_id in range(0x64, 0xC9):
-        message_data = [170, 187, 204]
-        send_can_message(message_id, message_data, csv_writer)
-        time.sleep(1)
+        print(f"Exception: {str(e)}")
 
 @app.route('/api/send_message', methods=['POST'])
 def api_send_message():
-    message_id = int(request.form['id'], 16)
-    message_data = [int(byte, 16) for byte in request.form['data'].split()]
-    with open('sent_messages.csv', 'a', newline='') as csvfile:
-        csv_writer = csv.writer(csvfile)
-        send_can_message(message_id, message_data, csv_writer)
+    message_id = request.form.get('id')
+    message_data = request.form.get('data')
+    send_can_message(message_id, message_data)
     return 'Message sent'
 
 @app.route('/api/receive_messages', methods=['GET'])
 def api_receive_messages():
-    return {'messages': received_messages}
+    return jsonify({'messages': received_messages})
 
 @app.route('/api/start', methods=['POST'])
 def api_start():
     global bus
     if bus is None:
-        bus = can.Bus(interface='virtual', channel='vcan0')
+        bus = can.interface.Bus(bustype='virtual', channel='vcan0')
         receiver_thread = Thread(target=receive_can_messages)
-        sender_thread = Thread(target=periodic_message_sender, args=(csv.writer,))
         receiver_thread.start()
-        sender_thread.start()
         return 'API started'
     else:
         return 'API is already running'
