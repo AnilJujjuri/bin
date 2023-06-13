@@ -1,70 +1,75 @@
+from flask import Flask, jsonify, request
 import can
 import threading
 import time
 
-# Define the desired message IDs to filter
-desired_message_ids = [0x100, 0x200]
+app = Flask(__name__)
 
-# Message counters
-sent_message_count = 0
-received_message_count = 0
+# Create a virtual CAN channel
+can_interface = 'virtual'  # Virtual interface name
+bus = can.interface.Bus(channel=can_interface, bustype='socketcan')
 
+# Global variables for periodic message sender
+send_thread = None
+send_interval = 1.0  # Time interval between sending messages
+send_message_id = 0x123  # Example message ID to send
+send_message_data = [0x11, 0x22, 0x33]  # Example message data to send
 
-def send_can_message(bus, arbitration_id, data):
-    global sent_message_count
-
-    message = can.Message(arbitration_id=arbitration_id, data=data)
-    bus.send(message)
-    sent_message_count += 1
-    print(f"Sent message: ID={hex(arbitration_id)}, Data={data}")
-
-
-def receive_can_messages(bus):
-    global received_message_count
-
+def send_periodic_message():
     while True:
-        message = bus.recv(timeout=1.0)
-        if message is None:
-            break
+        msg = can.Message(arbitration_id=send_message_id, data=send_message_data)
+        bus.send(msg)
+        time.sleep(send_interval)
 
-        received_message_count += 1
-        print(f"Received message: ID={hex(message.arbitration_id)}, Data={message.data}")
+@app.route('/send', methods=['POST'])
+def send_message():
+    if not request.is_json:
+        return jsonify({"error": "Invalid JSON data"}), 400
 
-
-def periodic_message_sender(bus):
-    # Define the periodic message details
-    periodic_message_id = 0x300
-    periodic_message_data = [0xAA, 0xBB, 0xCC]
-    period_sec = 1.0
-
-    while True:
-        send_can_message(bus, periodic_message_id, periodic_message_data)
-        time.sleep(period_sec)
-
-
-def main():
-    # Create a CAN bus interface with the appropriate backend for Windows
-    # Change the channel and bitrate as per your CAN interface configuration
-    bus = can.Bus(bustype='pcan', channel='PCAN_USBBUS1', bitrate=500000)
-
-    # Create and start the thread for periodic message sending
-    sender_thread = threading.Thread(target=periodic_message_sender, args=(bus,))
-    sender_thread.start()
+    data = request.get_json()
+    if 'id' not in data or 'data' not in data:
+        return jsonify({"error": "Missing required fields"}), 400
 
     try:
-        # Start receiving CAN messages
-        receive_can_messages(bus)
+        msg_id = int(data['id'], 16)
+        msg_data = [int(byte, 16) for byte in data['data']]
+    except ValueError:
+        return jsonify({"error": "Invalid message ID or data"}), 400
 
-    except can.CanError as e:
-        print("CAN error:", str(e))
+    msg = can.Message(arbitration_id=msg_id, data=msg_data)
+    bus.send(msg)
+    return jsonify({"success": True}), 200
 
-    finally:
-        # Stop the sender thread
-        sender_thread.join()
+@app.route('/receive', methods=['GET'])
+def receive_message():
+    message = bus.recv()
+    response = {
+        "id": hex(message.arbitration_id),
+        "data": [hex(byte) for byte in message.data]
+    }
+    return jsonify(response), 200
 
-        # Properly shut down the CAN bus interface
-        bus.shutdown()
+@app.route('/start-sender', methods=['POST'])
+def start_periodic_sender():
+    global send_thread
 
+    if send_thread is None or not send_thread.is_alive():
+        send_thread = threading.Thread(target=send_periodic_message)
+        send_thread.start()
+        return jsonify({"success": True}), 200
+    else:
+        return jsonify({"error": "Periodic sender is already running"}), 400
+
+@app.route('/stop-sender', methods=['POST'])
+def stop_periodic_sender():
+    global send_thread
+
+    if send_thread is not None and send_thread.is_alive():
+        send_thread.join()
+        send_thread = None
+        return jsonify({"success": True}), 200
+    else:
+        return jsonify({"error": "Periodic sender is not running"}), 400
 
 if __name__ == '__main__':
-    main()
+    app.run(debug=True)
