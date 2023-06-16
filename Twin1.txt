@@ -49,3 +49,28 @@ if __name__ == '__main__':
     app.run()
 subprocess.call(['sudo', '/sbin/ip', 'link', 'set', 'can0', 'up', 'type', 'can', 'bitrate', '500000'])
 process = subprocess.Popen(['candump', 'can0'], stdout=subprocess.PIPE)
+
+import subprocess
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+@app.route('/api/receive_can_messages', methods=['GET'])
+def receive_can_messages():
+    received_messages = []
+
+    # Start the vcan0 interface
+    subprocess.call(['sudo', '/sbin/ip', 'link', 'set', 'vcan0', 'up', 'type', 'can'])
+
+    # Start the candump process and capture its output
+    process = subprocess.Popen(['candump', 'vcan0'], stdout=subprocess.PIPE)
+
+    # Process the candump output
+    for line in iter(process.stdout.readline, b''):
+        # Process each line of the candump output as needed
+        received_messages.append(line.strip().decode())  # Example: Add the received CAN message to the list
+
+    return jsonify({'messages': received_messages})
+
+if __name__ == '__main__':
+    app.run()
