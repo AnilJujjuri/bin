@@ -1,0 +1,59 @@
+from flask import Flask
+#imports related to Azure Digital Twins
+#from azure.digitaltwins.core import DigitalTwinsClient
+#from azure.identity import DefaultAzureCredential
+
+import can
+import csv
+
+app = Flask(__name__)
+
+# CAN bus configuration
+bus = can.interface.Bus(bustype='socketcan', channel='vcan0', bitrate=500000)
+
+# CSV file configuration
+csv_filename = "can_messages.csv"
+
+def process_can_message(message):
+    # Process the received CAN message
+    # You can perform operations like parsing the message, extracting data, and sending to Azure Digital Twins
+
+    # Example: Print the received CAN message
+    print(f"Received CAN message: ID=0x{message.arbitration_id:x}, Data={message.data.hex()}")
+
+    # Example: Send the CAN message data to Azure Digital Twins
+    # twin_id = "<your-digital-twin-id>"
+    # property_name = "<your-property-name>"
+    # property_value = message.data.hex()
+    # client.update_component_property(twin_id, property_name, property_value)
+
+    # Store the CAN message in a CSV file
+    with open(csv_filename, mode='a') as file:
+        writer = csv.writer(file)
+        writer.writerow([message.arbitration_id, message.data.hex()])
+
+@app.route('/api/send_can_message', methods=['POST'])
+def send_can_message():
+    if not request.json or 'id' not in request.json or 'data' not in request.json:
+        return jsonify({'error': 'Invalid request'}), 400
+
+    message_id = request.json['id']
+    message_data = request.json['data']
+
+    try:
+        # Create a CAN message
+        message = can.Message(
+            arbitration_id=int(message_id, 16),
+            data=bytes.fromhex(message_data),
+            is_extended_id=False
+        )
+
+        # Process the manually provided CAN message
+        process_can_message(message)
+
+        return jsonify({'success': True}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run()
