@@ -47,3 +47,5 @@ def listen_can_messages():
 
 if __name__ == '__main__':
     app.run()
+subprocess.call(['sudo', '/sbin/ip', 'link', 'set', 'can0', 'up', 'type', 'can', 'bitrate', '500000'])
+process = subprocess.Popen(['candump', 'can0'], stdout=subprocess.PIPE)
