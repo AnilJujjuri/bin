@@ -1,64 +1,66 @@
-from flask import Flask, request, jsonify
-import can
-from threading import Thread
+# Standard Library
+import logging
+import threading
+import time
 
-app = Flask(__name__)
-bus = None
-received_messages = []
+# Third Party Library
+from azure.iot.device import IoTHubModuleClient
 
-def send_can_message(message_id, message_data):
-    message = can.Message(
-        arbitration_id=int(message_id, 16),
-        data=bytes.fromhex(message_data),
-        is_extended_id=False
-    )
-    bus.send(message)
-    print(f"Sent message: ID=0x{message_id}, Data={message_data}")
+logger = logging.getLogger(__name__)
 
-def receive_can_messages():
-    try:
+
+class CommunicationModule(threading.Thread):
+    def __init__(self, connection_string=None, **kwargs):
+        logger.info("Inside Communication module constructor")
+        threading.Thread.__init__(self)
+        self.connection_string = connection_string
+        self.client = None
+        self.on_property_update_callback = kwargs.get("on_property_update")
+        self.properties = {"reported": {}, "desired": {}}
+        self.methods = kwargs.get("methods", {})
+        self.daemon = True
+
+    def connect(self):
+        logger.info(f"connecting: {self.connection_string}")
+        if self.connection_string:
+            self.client = IoTHubModuleClient.create_from_connection_string(self.connection_string)
+            logger.info(f"self.client in connect if: {self.client}")
+        else:
+            self.client = IoTHubModuleClient.create_from_edge_environment()
+            logger.info(f"self.client in connect else: {self.client}")
+        self.client.on_twin_desired_properties_patch_received = self.on_property_update
+        self.start(debug=True)
+
+    def run(self):
         while True:
-            message = bus.recv(timeout=1)
-            if message is not None:
-                print(f"Received message: ID=0x{message.arbitration_id:x}, Data={message.data}")
-                received_messages.append({
-                    'id': message.arbitration_id,
-                    'data': message.data.hex(),
-                })
-    except Exception as e:
-        print(f"Exception: {str(e)}")
+            # Do something
+            time.sleep(1)
 
-@app.route('/api/send_message', methods=['POST'])
-def api_send_message():
-    message_id = request.form.get('id')
-    message_data = request.form.get('data')
-    send_can_message(message_id, message_data)
-    return 'Message sent'
+    def disconnect(self):
+        if self.client:
+            self.client.shutdown()
 
-@app.route('/api/receive_messages', methods=['GET'])
-def api_receive_messages():
-    return jsonify({'messages': received_messages})
+    def on_property_update(self, data):
+        """
+        Desired Property update from the server
+        """
+        self.properties["desired"].update(data)
+        if self.on_property_update_callback:
+            self.on_property_update_callback(self.properties["desired"])
 
-@app.route('/api/start', methods=['POST'])
-def api_start():
-    global bus
-    if bus is None:
-        bus = can.interface.Bus(bustype='virtual', channel='vcan0')
-        receiver_thread = Thread(target=receive_can_messages)
-        receiver_thread.start()
-        return 'API started'
-    else:
-        return 'API is already running'
+    def update_property(self, data):
+        """
+        Reported Property to be updated from device
+        """
+        return self.client.patch_twin_reported_properties(data)
 
-@app.route('/api/stop', methods=['POST'])
-def api_stop():
-    global bus
-    if bus is not None:
-        bus.shutdown()
-        bus = None
-        return 'API stopped'
-    else:
-        return 'API is not running'
+    def get_properties(self):
+        self.properties = self.client.get_twin()
+        return self.properties
 
-if __name__ == '__main__':
-    app.run()
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.disconnect(debug=True)
