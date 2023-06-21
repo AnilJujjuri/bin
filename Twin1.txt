@@ -66,9 +66,13 @@ class CommunicationModule(threading.Thread):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.disconnect()
 
-# obj1=CommunicationModule()
-# print(obj1.connect())
-# print(obj1.run())
-# print(obj1.on_property_update())
-# print(obj1.update_property())
-# obj1.get_properties()
+from azure.iot.device import IoTHubModuleClient
+import logging
+logger = logging.getLogger(__name__)
+
+connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;ModuleId=SimulatedTemperatureSensor;SharedAccessKey=v1cnONzs99unf3XKKACDfx0E69/bE5INBg/o0A7sKXw="
+client = IoTHubModuleClient.create_from_connection_string(connection_string)
+logger.info(f"self.client in connect if: {client}")
+print(client)
+properties = client.get_twin()
+print(properties)
