@@ -1,26 +1,19 @@
-# Standard Library
 import logging
-import threading
 import time
-
-# Third Party Libraries
 from azure.iot.device import IoTHubModuleClient
 import can
 
 logger = logging.getLogger(__name__)
 
-
-class CommunicationModule(threading.Thread):
+class CommunicationModule:
     def __init__(self, connection_string=None, can_interface=None, **kwargs):
         logger.info("Inside Communication module constructor")
-        threading.Thread.__init__(self)
         self.connection_string = connection_string
         self.can_interface = can_interface
         self.client = None
-        self.on_property_update_callback = kwargs.get("on_property_update")
         self.properties = {"reported": {}, "desired": {}}
+        self.on_property_update_callback = kwargs.get("on_property_update")
         self.methods = kwargs.get("methods", {})
-        self.daemon = True
 
     def connect(self):
         logger.info(f"Connecting: {self.connection_string}")
@@ -31,11 +24,24 @@ class CommunicationModule(threading.Thread):
             self.client = IoTHubModuleClient.create_from_edge_environment()
             logger.info(f"self.client in connect else: {self.client}")
         self.client.on_twin_desired_properties_patch_received = self.on_property_update
-        self.start()
+        self.client.connect()
+
+    def disconnect(self):
+        if self.client:
+            self.client.shutdown()
+
+    def on_property_update(self, patch):
+        self.properties["desired"].update(patch)
+        if self.on_property_update_callback:
+            self.on_property_update_callback(self.properties["desired"])
+
+    def update_property(self, reported_properties):
+        twin_patch = {"reported": reported_properties}
+        self.client.patch_twin_reported_properties(twin_patch)
 
     def run(self):
         # Initialize CAN communication
-        bus = can.interface.Bus(channel='vcan0', bustype="socketcan",bitrate=50000)
+        bus = can.interface.Bus(channel=self.can_interface, bustype="socketcan_native")
 
         while True:
             # Receive CAN messages
@@ -54,31 +60,6 @@ class CommunicationModule(threading.Thread):
                 # Update the reported properties in the device twin
                 self.update_property(data)
 
-            time.sleep(1)
-
-    def disconnect(self):
-        if self.client:
-            self.client.shutdown()
-
-    def on_property_update(self, data):
-        """
-        Desired Property update from the server
-        """
-        self.properties["desired"].update(data)
-        if self.on_property_update_callback:
-            self.on_property_update_callback(self.properties["desired"])
-
-    def update_property(self, data):
-        """
-        Reported Property to be updated from device
-        """
-        reported_properties = {"reported": data}
-        return self.client.patch_twin_reported_properties(reported_properties)
-
-    def get_properties(self):
-        self.properties = self.client.get_twin()
-        return self.properties
-
     def __enter__(self):
         self.connect()
         return self
@@ -86,9 +67,8 @@ class CommunicationModule(threading.Thread):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.disconnect()
 
-
 def process_can_message(message):
-    # Extract the desired data from the CAN message
+    # Process and extract desired data from the CAN message
     data = {
         "can_id": message.arbitration_id,
         "can_data": message.data,
@@ -96,17 +76,18 @@ def process_can_message(message):
     }
     return data
 
+if __name__ == "__main__":
+    # Azure IoT Hub connection string
+    connection_string = "YOUR_CONNECTION_STRING"
 
-# Define your connection string and CAN interface
-connection_string = "YOUR_CONNECTION_STRING"
-can_interface = "YOUR_CAN_INTERFACE"
+    # CAN interface name
+    can_interface = "vcan0"
 
-# Create an instance of CommunicationModule
-module = CommunicationModule(connection_string=connection_string, can_interface=can_interface)
+    # Instantiate the CommunicationModule
+    with CommunicationModule(connection_string=connection_string, can_interface=can_interface) as module:
+        # Start the communication module thread
+        module.start()
 
-# Start the thread and execute the run method
-module.start()
-
-# Keep the main thread running or perform other tasks as needed
-while True:
-    time.sleep(1)
+        # Keep the program running to continue listening to CAN messages and updating the device twin
+        while True:
+            time.sleep(1)
