@@ -35,7 +35,7 @@ class CommunicationModule(threading.Thread):
 
     def run(self):
         # Initialize CAN communication
-        bus = can.interface.Bus(channel=self.can_interface, bustype="socketcan_native")
+        bus = can.interface.Bus(channel='vcan0', bustype="socketcan",bitrate=50000)
 
         while True:
             # Receive CAN messages
@@ -97,8 +97,16 @@ def process_can_message(message):
     return data
 
 
-# Usage example
-connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;ModuleId=SimulatedTemperatureSensor;SharedAccessKey=v1cnONzs99unf3XKKACDfx0E69/bE5INBg/o0A7sKXw="
-can_interface = "vcan0"
+# Define your connection string and CAN interface
+connection_string = "YOUR_CONNECTION_STRING"
+can_interface = "YOUR_CAN_INTERFACE"
 
-def handle_property_update(properties):
+# Create an instance of CommunicationModule
+module = CommunicationModule(connection_string=connection_string, can_interface=can_interface)
+
+# Start the thread and execute the run method
+module.start()
+
+# Keep the main thread running or perform other tasks as needed
+while True:
+    time.sleep(1)
