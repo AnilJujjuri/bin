@@ -91,3 +91,44 @@ if __name__ == "__main__":
         # Keep the program running to continue listening to CAN messages and updating the device twin
         while True:
             time.sleep(1)
+
+
+from azure.iot.device import IoTHubModuleClient
+import json
+
+# Azure IoT Hub connection string
+connection_string = "YOUR_CONNECTION_STRING"
+
+def send_data_to_twin(data):
+    # Create an instance of the IoTHubModuleClient
+    client = IoTHubModuleClient.create_from_connection_string(connection_string)
+
+    # Connect the client
+    client.connect()
+
+    # Create the twin patch
+    twin_patch = {
+        "reported": {
+            "data": data
+        }
+    }
+
+    # Convert the twin patch to JSON
+    twin_patch_json = json.dumps(twin_patch)
+
+    # Send the twin patch
+    client.patch_twin_reported_properties(twin_patch_json)
+
+    # Disconnect the client
+    client.shutdown()
+
+
+if __name__ == "__main__":
+    # Example data to be sent to the device twin
+    data = {
+        "temperature": 25.5,
+        "humidity": 60.2
+    }
+
+    # Send the data to the device twin
+    send_data_to_twin(data)
