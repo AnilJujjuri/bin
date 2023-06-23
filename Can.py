@@ -1,4 +1,20 @@
-def main():
+import can
+import logging
+from azure.iot.device import IoTHubModuleClient
+
+logger = logging.getLogger(__name__)
+
+class CommunicationModule:
+    def __init__(self, connection_string=None, can_interface=None):
+        self.connection_string = connection_string
+        self.can_interface = can_interface
+        self.client = None
+
+    def connect(self):
+        logger.info(f"Connecting: {self.connection_string}")
+        self.client = IoTHubModuleClient.create_from_connection_string(self.connection_string)
+        self.client.connect()
+
         # Initialize CAN communication
         bus = can.interface.Bus(channel=self.can_interface, bustype="socketcan")
 
@@ -9,22 +25,39 @@ def main():
             # Process CAN messages
             for message in can_messages:
                 # Process the received CAN message and extract the desired data
-                data = process_can_message(message)
+                data = {
+                    "can_id": message.arbitration_id,
+                    "can_data": message.data,
+                    "can_timestamp": message.timestamp,
+                }
+                print("Received CAN data:", data)
 
-                # Update the desired properties with the extracted data
-               # self.properties["desired"].update(data)
-               # if self.on_property_update_callback:
-                #    self.on_property_update_callback(self.properties["desired"])
+                # Send the data to device twin
+                self.send_data_to_twin(data)
 
-                # Update the reported properties in the device twin
-                print(data)
+    def send_data_to_twin(self, data):
+        reported_properties = {"reported": data}
+        self.client.patch_twin_reported_properties(reported_properties)
 
-message={"sensorid":123,"temperature":23,"humidity":20}
-def process_can_message(message):
-    # Process and extract desired data from the CAN message
-    data = {
-        "can_id": message.arbitration_id,
-        "can_data": message.data,
-        "can_timestamp": message.timestamp,
-    }
-    return data
+    def disconnect(self):
+        if self.client:
+            self.client.shutdown()
+
+if __name__ == "__main__":
+    # Azure IoT Hub connection string
+    connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;ModuleId=SimulatedTemperatureSensor;SharedAccessKey=v1cnONzs99unf3XKKACDfx0E69/bE5INBg/o0A7sKXw="
+
+    # CAN interface name
+    can_interface = "vcan0"
+
+    # Instantiate the CommunicationModule
+    module = CommunicationModule(connection_string=connection_string, can_interface=can_interface)
+
+    try:
+        # Connect to Azure IoT Hub and start listening to CAN bus
+        module.connect()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        # Disconnect from Azure IoT Hub
+        module.disconnect()
