@@ -1,33 +1,30 @@
-import can
-
-def send_can_message(bus, arbitration_id, data):
-    message = can.Message(arbitration_id=arbitration_id, data=data)
-    bus.send(message)
-
-def receive_can_messages(bus):
-    while True:
-        message = bus.recv(timeout=1.0)
-        if message is None:
-            break
-        print("Received message:", message)
-
 def main():
-    # Create a CAN bus interface
-    bus = can.interface.Bus(bustype='virtual', channel='can0')
+        # Initialize CAN communication
+        bus = can.interface.Bus(channel=self.can_interface, bustype="socketcan")
 
-    try:
-        # Send a CAN message
-        send_can_message(bus, arbitration_id=0x123, data=[0x01, 0x02, 0x03])
+        while True:
+            # Receive CAN messages
+            can_messages = bus.recv()
 
-        # Receive CAN messages
-        receive_can_messages(bus)
+            # Process CAN messages
+            for message in can_messages:
+                # Process the received CAN message and extract the desired data
+                data = process_can_message(message)
 
-    except can.CanError as e:
-        print("CAN error:", str(e))
+                # Update the desired properties with the extracted data
+               # self.properties["desired"].update(data)
+               # if self.on_property_update_callback:
+                #    self.on_property_update_callback(self.properties["desired"])
 
-    finally:
-        # Properly shut down the CAN bus interface
-        bus.shutdown()
+                # Update the reported properties in the device twin
+                print(data)
 
-if __name__ == '__main__':
-    main()
+message={"sensorid":123,"temperature":23,"humidity":20}
+def process_can_message(message):
+    # Process and extract desired data from the CAN message
+    data = {
+        "can_id": message.arbitration_id,
+        "can_data": message.data,
+        "can_timestamp": message.timestamp,
+    }
+    return data
