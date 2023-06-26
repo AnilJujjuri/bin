@@ -1,51 +1,22 @@
-import can
-import time
-import csv
-from threading import Thread
+/usr/lib/python3/dist-packages/requests/__init__.py:89: RequestsDependencyWarning: urllib3 (2.0.3) or chardet (5.1.0) doesn't match a supported version!
+  warnings.warn("urllib3 ({}) or chardet ({}) doesn't match a supported "
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/can/interfaces/socketcan/socketcan.py", line 792, in _send_once
+    sent = self.socket.send(data)
+OSError: [Errno 22] Invalid argument
 
+During handling of the above exception, another exception occurred:
 
-def send_can_message(bus, message_id, message_data,csv_writer):
-    message = can.Message(
-        arbitration_id=message_id,
-        data=message_data,
-        is_extended_id=False
-    )
+Traceback (most recent call last):
+  File "test5.py", line 64, in <module>
+    main(debug=True)
+  File "test5.py", line 55, in main
+    send_can_message(bus, telemetry)
+  File "test5.py", line 8, in send_can_message
     bus.send(message)
-    print(f"Sent message: ID=0x{message_id:x}, Data={message_data}")
-    csv_writer.writerow([message_id, message_data])
-
-def receive_can_messages(bus,):
-   try:
-    while True:
-        message = bus.recv(timeout=1)
-        if message is not None:
-            print(f"Received message: ID=0x{message.arbitration_id:x}, Data={message.data}")
-   except Exception as e:
-       print(f"Exception ")
-
-
-def periodic_message_sender(bus,csv_writer):
-    for message_id in range(0x64, 0xC9):
-        message_data = [170, 187, 204]
-        send_can_message(bus, message_id, message_data,csv_writer)
-    
-
-
-def main():
-    bus = can.Bus(interface='virtual', channel='vcan0')
-    with open('sent_messages.csv','w',newline='') as csvfile:
-        csv_writer=csv.writer(csvfile)
-        csv_writer.writerow(["ID", "Data"])
-        receiver_thread = Thread(target=receive_can_messages, args=(bus,))
-        sender_thread = Thread(target=periodic_message_sender, args=(bus,csv_writer))
-
-        receiver_thread.start()
-        sender_thread.start()
-
-        sender_thread.join()
-
-    bus.shutdown()
-
-
-if __name__ == "__main__":
-    main()
+  File "/usr/local/lib/python3.8/dist-packages/can/interfaces/socketcan/socketcan.py", line 777, in send
+    sent = self._send_once(data, channel)
+  File "/usr/local/lib/python3.8/dist-packages/can/interfaces/socketcan/socketcan.py", line 794, in _send_once
+    raise can.CanOperationError(
+can.exceptions.CanOperationError: Failed to transmit: Invalid argument [Error Code 22]
+SocketcanBus was not properly shut down
