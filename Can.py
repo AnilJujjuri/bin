@@ -6,14 +6,13 @@ def send_can_message(bus, can_id, data):
     message = can.Message(arbitration_id=can_id, data=data)
     bus.send(message)
 
-def convert_telemetry_to_candump(telemetry):
+def convert_telemetry_to_candump(temperature, humidity):
     # Convert telemetry data to candump format
     # Adjust the conversion logic based on your specific telemetry data structure
-    sensor_id = telemetry["sensor_id"]
-    temperature = int(telemetry["temperature"] * 10)  # Scale and convert to integer
-    humidity = int(telemetry["humidity"] * 10)  # Scale and convert to integer
+    temperature = int(temperature * 10)  # Scale and convert to integer
+    humidity = int(humidity * 10)  # Scale and convert to integer
 
-    candump = f"{sensor_id} #{temperature:02X}{humidity:02X}"
+    candump = f"001 #{temperature:02X}{humidity:02X}"  # Assuming sensor_id is constant as '001'
 
     return candump
 
@@ -31,12 +30,13 @@ def main(debug=False):
     # Start receiving and processing device twin updates
     while True:
         twin = client.get_twin()
-        desired_properties = twin["desired"]
+        reported_properties = twin["reported"]
 
-        # Check if there are desired properties related to telemetry
-        if "telemetry" in desired_properties:
-            telemetry = desired_properties["telemetry"]
-            candump = convert_telemetry_to_candump(telemetry)
+        # Check if there are reported properties related to temperature and humidity
+        if "temperature" in reported_properties and "humidity" in reported_properties:
+            temperature = reported_properties["temperature"]
+            humidity = reported_properties["humidity"]
+            candump = convert_telemetry_to_candump(temperature, humidity)
 
             # Print the converted telemetry data in candump format
             print(candump)
