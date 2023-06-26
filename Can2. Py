@@ -1,44 +1,26 @@
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000005   [3]  15 83 36
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
-  vcan0  00000006   [3]  12 63 2C
+from azure.iot.device import IoTHubDeviceClient
+
+def send_telemetry(device_connection_string, telemetry):
+    # Create an instance of the IoTHubDeviceClient
+    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+
+    # Connect to IoT Hub
+    client.connect()
+
+    # Send the telemetry data to the device twin
+    client.patch_twin_reported_properties(telemetry)
+
+    # Disconnect from IoT Hub
+    client.disconnect()
+
+if __name__ == '__main__':
+    # Define the device connection string and telemetry data
+    connection_string="HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;ModuleId=SimulatedTemperatureSensor;SharedAccessKey=v1cnONzs99unf3XKKACDfx0E69/bE5INBg/o0A7sKXw="
+    telemetry_data = {
+        "sensor_id": "6",
+        "temperature": 29.4,
+        "humidity": 81.2
+    }
+
+    # Send telemetry data to device twin
+    send_telemetry(connection_string, telemetry_data)
