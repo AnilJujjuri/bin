@@ -59,13 +59,18 @@ if __name__ == '__main__':
     main(debug=True)
 
 
-/usr/lib/python3/dist-packages/requests/__init__.py:89: RequestsDependencyWarning: urllib3 (2.0.3) or chardet (5.1.0) doesn't match a supported version!
-  warnings.warn("urllib3 ({}) or chardet ({}) doesn't match a supported "
 33C0234FF4D400BC419A029 #FE278
 Traceback (most recent call last):
-  File "test6.py", line 59, in <module>
+  File "test6.py", line 60, in <module>
     main(debug=True)
-  File "test6.py", line 50, in main
-    send_can_message(bus, int(can_id), can_data)
-ValueError: invalid literal for int() with base 10: '33C0234FF4D400BC419A029 '
-SocketcanBus was not properly shut down
+  File "test6.py", line 51, in main
+    send_can_message(bus, int(can_id, 16), can_data)
+  File "test6.py", line 7, in send_can_message
+    bus.send(message)
+  File "/usr/local/lib/python3.8/dist-packages/can/interfaces/socketcan/socketcan.py", line 768, in send
+    data = build_can_frame(msg)
+  File "/usr/local/lib/python3.8/dist-packages/can/interfaces/socketcan/socketcan.py", line 178, in build_can_frame
+    return CAN_FRAME_HEADER_STRUCT.pack(can_id, msg.dlc, flags) + data
+struct.error: argument out of range
+
+
