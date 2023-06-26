@@ -1,12 +1,58 @@
-<azure.iot.device.iothub.sync_clients.IoTHubDeviceClient object at 0x7f905000ad00>
-{'SendData': True, 'SendInterval': 5, 'CustomProperty': 2000, 'reported': {'CustomProperty': 2000, 'sensor_id': 123, 'temperature': 25.5, 'humidity': 60.2}, 'sensor_id': '001', 'temperature': 25.4, 'humidity': 63.2, '$version': 78}
-Traceback (most recent call last):
-  File "test3.py", line 54, in <module>
-    main(debug = True)
-  File "test3.py", line 47, in main
-    send_can_message(bus, can_id, can_data)            # Print the converted telemetry data in candump format
-  File "test3.py", line 5, in send_can_message
+from azure.iot.device import IoTHubDeviceClient
+import can
+import time
+
+def send_can_message(bus, can_id, data):
     message = can.Message(arbitration_id=can_id, data=data)
-  File "/usr/local/lib/python3.8/dist-packages/can/message.py", line 97, in __init__
-    self.data = bytearray(data)
-ValueError: byte must be in range(0, 256)
+    bus.send(message)
+
+def convert_telemetry_to_candump(telemetry):
+    # Convert telemetry data to candump format
+    # Adjust the conversion logic based on your specific telemetry data structure
+    sensor_id = telemetry["sensor_id"]
+    temperature = int(telemetry["temperature"] * 10)  # Scale and convert to integer
+    humidity = int(telemetry["humidity"] * 10)  # Scale and convert to integer
+
+    candump = f"{sensor_id} #{temperature:02X}{humidity:02X}"
+
+    return candump
+
+def main(debug=False):
+    # Create a CAN bus instance for the 'vcan0' interface
+    bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
+
+    # Create an instance of the IoTHubDeviceClient
+    device_connection_string = "<Your Device Connection String>"
+    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+
+    # Connect to IoT Hub
+    client.connect()
+
+    # Start receiving and processing device twin updates
+    while True:
+        twin = client.get_twin()
+        desired_properties = twin["desired"]
+
+        # Check if there are desired properties related to telemetry
+        if "telemetry" in desired_properties:
+            telemetry = desired_properties["telemetry"]
+            candump = convert_telemetry_to_candump(telemetry)
+
+            # Print the converted telemetry data in candump format
+            print(candump)
+
+            # Split the candump string into can_id and data
+            can_id, can_data = candump.split("#")
+            can_data = [int(can_data[i:i+2], 16) for i in range(0, len(can_data), 2)]
+
+            # Send the CAN message
+            send_can_message(bus, int(can_id), can_data)
+
+        # Wait for some time before checking for device twin updates again
+        time.sleep(1)
+
+    # Disconnect from IoT Hub
+    client.disconnect()
+
+if __name__ == '__main__':
+    main(debug=True)
