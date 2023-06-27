@@ -1,19 +1,64 @@
-  vcan0  00000002   [3]  13 03 36
-  vcan0  00000004   [3]  14 43 4A
-  vcan0  00000006   [3]  15 83 5E
-  vcan0  00000008   [3]  16 C3 72
-  vcan0  0000000A   [3]  18 03 86
-  vcan0  0000000B   [3]  18 A3 90
-  vcan0  0000000B   [3]  18 A3 90
-  vcan0  0000000B   [3]  18 A3 90
-  vcan0  0000000B   [3]  18 A3 90
-  vcan0  0000000B   [3]  18 A3 90
-  vcan0  0000000B   [3]  18 A3 90
-  vcan0  0000000B   [3]  18 A3 90
-  vcan0  0000000B   [3]  18 A3 90
-  vcan0  0000000B   [3]  18 A3 90
-  vcan0  0000000B   [3]  18 A3 90
-  vcan0  0000000B   [3]  18 A3 90
-  vcan0  0000000B   [3]  18 A3 90
-  vcan0  0000000B   [3]  18 A3 90
-  vcan0  0000000B   [3]  18 A3 90
+  import can
+import threading
+from azure.iot.device import IoTHubDeviceClient
+
+def send_can_message(bus, can_id, data):
+    message = can.Message(arbitration_id=can_id, data=data)
+    bus.send(message)
+
+def convert_can_message_to_telemetry(message):
+    # Convert CAN message to telemetry data format
+    sensor_id = message.arbitration_id
+    temperature = message.data[0] / 10.0
+    humidity = message.data[1] / 10.0
+
+    return {
+        "sensor_id": sensor_id,
+        "temperature": temperature,
+        "humidity": humidity
+    }
+
+def send_telemetry(client, telemetry):
+    # Send the telemetry data to the device twin as reported properties
+    client.patch_twin_reported_properties(telemetry)
+
+def receive_can_messages(bus, client):
+    # Start listening for CAN messages
+    while True:
+        message = bus.recv()
+        print(f"Received CAN message: ID={message.arbitration_id}, Data={message.data.hex()}")
+
+        # Convert CAN message to telemetry data
+        telemetry = convert_can_message_to_telemetry(message)
+
+        # Send telemetry data to device twin
+        send_telemetry(client, telemetry)
+
+def main():
+    # Create a CAN bus instance for the 'vcan0' interface
+    bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
+
+    # Create an instance of the IoTHubDeviceClient
+    device_connection_string = "YOUR_DEVICE_CONNECTION_STRING"
+    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+
+    # Connect to IoT Hub
+    client.connect()
+
+    # Create a thread for receiving CAN messages
+    can_thread = threading.Thread(target=receive_can_messages, args=(bus, client))
+    can_thread.start()
+
+    # Start receiving and processing device twin updates
+    while True:
+        twin = client.get_twin()
+        reported_properties = twin["reported"]
+
+        # Process device twin updates as needed
+        # ...
+
+    # Disconnect from IoT Hub
+    client.disconnect()
+
+if __name__ == '__main__':
+    main()
