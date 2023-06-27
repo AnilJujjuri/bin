@@ -14,7 +14,7 @@ def receive_can_messages(channel):
         message = bus.recv()
         print(f"{channel}  {message.arbitration_id:08X}   [{message.dlc}]  {' '.join(f'{byte:02X}' for byte in message.data)}")
 
-def main():
+def main(debug=False):
     # Create a CAN bus instance for the 'vcan0' interface
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
@@ -24,6 +24,9 @@ def main():
 
     # Connect to IoT Hub
     client.connect()
+
+    if debug:
+        print("Connected to IoT Hub")
 
     # Fetch telemetry data from device twin
     twin = client.get_twin()
@@ -36,13 +39,20 @@ def main():
         humidity = reported_properties["humidity"]
 
         # Process the telemetry data as needed
-        print(f"Sensor: {sensor}, Temperature: {temperature}, Humidity: {humidity}")
+        if debug:
+            print(f"Sensor: {sensor}, Temperature: {temperature}, Humidity: {humidity}")
 
     # Start receiving CAN messages
+    if debug:
+        print("Listening for CAN messages on vcan0...")
+
     receive_can_messages('vcan0')
 
     # Disconnect from IoT Hub
     client.disconnect()
 
+    if debug:
+        print("Disconnected from IoT Hub")
+
 if __name__ == '__main__':
-    main()
+    main(debug=True)
