@@ -1,7 +1,7 @@
 Traceback (most recent call last):
-  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/iothub/sync_clients.py", line 33, in handle_result
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/iothub/sync_clie                                                                                        nts.py", line 33, in handle_result
     return callback.wait_for_completion()
-  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/common/evented_callback.py", line 69, in wait_for_completion
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/common/evented_c                                                                                        allback.py", line 69, in wait_for_completion
     raise self.exception
 azure.iot.device.exceptions.ServiceError: twin operation returned status 400
 
@@ -12,10 +12,10 @@ Traceback (most recent call last):
     send_telemetry(connection_string, telemetry_data)
   File "test9.py", line 20, in send_telemetry
     client.patch_twin_reported_properties(reported_properties)
-  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/patch_documentation.py", line 32, in patch_twin_reported_properties
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/patch_documentat                                                                                        ion.py", line 32, in patch_twin_reported_properties
     return super(IoTHubDeviceClient, self).patch_twin_reported_properties(
-  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/iothub/sync_clients.py", line 482, in patch_twin_reported_properties
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/iothub/sync_clie                                                                                        nts.py", line 482, in patch_twin_reported_properties
     handle_result(callback)
-  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/iothub/sync_clients.py", line 57, in handle_result
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/iothub/sync_clie                                                                                        nts.py", line 57, in handle_result
     raise exceptions.ClientError("Unexpected failure") from e
 azure.iot.device.exceptions.ClientError: Unexpected failure
