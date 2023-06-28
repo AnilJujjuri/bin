@@ -38,3 +38,28 @@ def main():
 
 if __name__ == '__main__':
     main()
+from azure.iot.device import IoTHubDeviceClient
+
+def update_device_twin(device_connection_string, sensor_id, properties):
+    reported_properties = {sensor_id: properties}
+
+    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+    client.connect()
+
+    client.patch_twin_reported_properties(reported_properties)
+
+    client.disconnect()
+
+if __name__ == '__main__':
+    device_connection_string = "HostName=your-iot-hub.azure-devices.net;DeviceId=your-device-id;SharedAccessKey=your-shared-access-key"
+
+    sensor_id = "sensor_1234"  # Replace with your desired sensor ID
+
+    properties = {
+        "vibration": 1.5,  # Replace with your desired vibration value
+        "temperature": 25.0,  # Replace with your desired temperature value
+        "humidity": 40.0,  # Replace with your desired humidity value
+    }
+
+    update_device_twin(device_connection_string, sensor_id, properties)
+
