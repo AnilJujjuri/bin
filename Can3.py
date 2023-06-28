@@ -49,3 +49,16 @@ def main():
 
 if __name__ == '__main__':
     main()
+\
+
+Traceback (most recent call last):
+  File "/home/azure/generic.py", line 51, in <module>
+    main()
+  File "/home/azure/generic.py", line 46, in main
+    handle_device_twin_update(twin, bus)
+  File "/home/azure/generic.py", line 32, in handle_device_twin_update
+    can_data = [int(byte) for byte in candump.split("_")]
+  File "/home/azure/generic.py", line 32, in <listcomp>
+    can_data = [int(byte) for byte in candump.split("_")]
+ValueError: invalid literal for int() with base 10: 'sensor'
+SocketcanBus was not properly shut down
