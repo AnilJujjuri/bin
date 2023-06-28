@@ -53,7 +53,8 @@ Traceback (most recent call last):
     main()
   File "/home/azure/generic.py", line 44, in main
     handle_device_twin_update(twin, bus)
-  File "/home/azure/generic.py", line 28, in handle_device_twin_update
-    can_id, can_data = candump.split("_")
-ValueError: too many values to unpack (expected 2)
-SocketcanBus was not properly shut down
+  File "/home/azure/generic.py", line 30, in handle_device_twin_update
+    can_data = [int(byte) for byte in can_data]
+  File "/home/azure/generic.py", line 30, in <listcomp>
+    can_data = [int(byte) for byte in can_data]
+ValueError: invalid literal for int() with base 10: 'vibration'
