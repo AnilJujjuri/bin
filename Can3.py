@@ -47,3 +47,13 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+Traceback (most recent call last):
+  File "/home/azure/generic.py", line 49, in <module>
+    main()
+  File "/home/azure/generic.py", line 44, in main
+    handle_device_twin_update(twin, bus)
+  File "/home/azure/generic.py", line 28, in handle_device_twin_update
+    can_id, can_data = candump.split("_")
+ValueError: too many values to unpack (expected 2)
+SocketcanBus was not properly shut down
