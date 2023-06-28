@@ -74,3 +74,10 @@ def main(debug=False):
 
 if __name__ == '__main__':
     main(debug=True)
+  vcan0  00000006   [3]  12 63 2C
+  vcan0  00000006   [3]  12 63 2C
+  vcan0  00000006   [3]  12 63 2C
+  vcan0  00000006   [3]  12 63 2C
+  vcan0  00000006   [3]  12 63 2C
+  vcan0  00000006   [3]  12 63 2C
+  vcan0  00000006   [3]  12 63 2C
