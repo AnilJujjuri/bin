@@ -53,8 +53,7 @@ Traceback (most recent call last):
     main()
   File "/home/azure/generic.py", line 44, in main
     handle_device_twin_update(twin, bus)
-  File "/home/azure/generic.py", line 30, in handle_device_twin_update
-    can_data = [int(byte) for byte in can_data]
-  File "/home/azure/generic.py", line 30, in <listcomp>
-    can_data = [int(byte) for byte in can_data]
-ValueError: invalid literal for int() with base 10: 'vibration'
+  File "/home/azure/generic.py", line 32, in handle_device_twin_update
+    send_can_message(bus, int(can_id), can_data)
+ValueError: invalid literal for int() with base 10: 'sensor'
+SocketcanBus was not properly shut down
