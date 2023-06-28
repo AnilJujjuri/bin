@@ -25,11 +25,11 @@ def handle_device_twin_update(twin, bus):
     for sensor_id, telemetry_data in reported_properties.items():
         if isinstance(telemetry_data, dict):
             can_id_parts = sensor_id.split("_")  # Split the sensor_id to get the parts
-            if len(can_id_parts) >= 2:
+            if len(can_id_parts) >= 2 and can_id_parts[1].isnumeric():
                 can_id = can_id_parts[1]  # The numeric part is the can_id
 
                 candump = convert_telemetry_to_candump(sensor_id, telemetry_data)
-                can_data = [int(byte) for byte in candump.split("_")[1:]]  # Skip the first part
+                can_data = [int(byte) for byte in candump.split("_")[1:] if byte.isnumeric()]  # Skip the first part if numeric
 
                 send_can_message(bus, int(can_id), can_data)
 
@@ -49,16 +49,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-Traceback (most recent call last):
-  File "/home/azure/generic.py", line 51, in <module>
-    main()
-  File "/home/azure/generic.py", line 46, in main
-    handle_device_twin_update(twin, bus)
-  File "/home/azure/generic.py", line 32, in handle_device_twin_update
-    can_data = [int(byte) for byte in candump.split("_")[1:]]  # Skip the first part
-  File "/home/azure/generic.py", line 32, in <listcomp>
-    can_data = [int(byte) for byte in candump.split("_")[1:]]  # Skip the first part
-ValueError: invalid literal for int() with base 10: 'vibration'
-SocketcanBus was not properly shut down
