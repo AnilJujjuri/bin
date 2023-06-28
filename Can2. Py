@@ -75,3 +75,4 @@ if __name__ == '__main__':
 
     update_device_twin(device_connection_string, sensor_id, properties)
 
+Failed to save 'generic.py': Unable to write file 'vscode-remote://ssh-remote+40.83.9.16/home/azure/generic.py' (NoPermissions (FileSystemError): Error: EACCES: permission denied, open '/home/azure/generic.py')
