@@ -6,7 +6,7 @@ def send_can_message(bus, can_id, data):
     message = can.Message(arbitration_id=can_id, data=data)
     bus.send(message)
 
-def convert_telemetry_to_candump(sensor_id,temperature, humidity):
+def convert_telemetry_to_candump(sensor_id, temperature, humidity):
     # Convert telemetry data to candump format
     # Adjust the conversion logic based on your specific telemetry data structure
     temperature = int(temperature * 10)  # Scale and convert to integer
@@ -27,27 +27,37 @@ def main(debug=False):
     # Connect to IoT Hub
     client.connect()
 
+    # Initialize the flag to track if the message has been sent
+    message_sent = False
+
     # Start receiving and processing device twin updates
     while True:
         twin = client.get_twin()
         reported_properties = twin["reported"]
 
-        # Check if there are reported properties related to temperature and humidity
-        if "temperature" in reported_properties and "humidity" and "sensor_id" in reported_properties:
+        # Check if there are reported properties related to temperature, humidity, and sensor_id
+        if "temperature" in reported_properties and "humidity" in reported_properties and "sensor_id" in reported_properties:
             temperature = reported_properties["temperature"]
             humidity = reported_properties["humidity"]
-            sensor_id=reported_properties["sensor_id"]
-            candump = convert_telemetry_to_candump(sensor_id,temperature, humidity)
+            sensor_id = reported_properties["sensor_id"]
 
-            # Print the converted telemetry data in candump format
-            print(candump)
+            # If the message has not been sent, send it
+            if not message_sent:
+                candump = convert_telemetry_to_candump(sensor_id, temperature, humidity)
+                can_id, can_data = candump.split("#")
+                can_id = can_id.strip()  # Remove extra whitespace
+                can_data = [int(can_data[i:i+2], 16) for i in range(0, len(can_data), 2)]
+                send_can_message(bus, int(sensor_id), can_data)
+                message_sent = True
 
-            # Split the candump string into can_id and data
-            can_id, can_data = candump.split("#")
-            can_data = [int(can_data[i:i+2], 16) for i in range(0, len(can_data), 2)]
+        # If the message has been sent, update the data
+        if message_sent:
+            # Update the telemetry data as needed
+            temperature += 1.0
+            humidity += 1.0
 
-            # Send the CAN message
-            send_can_message(bus, int(can_id), can_data)
+        # Reset the flag to allow sending a new message in the next iteration
+        message_sent = False
 
         # Wait for some time before checking for device twin updates again
         time.sleep(1)
@@ -57,20 +67,3 @@ def main(debug=False):
 
 if __name__ == '__main__':
     main(debug=True)
-
-
-33C0234FF4D400BC419A029 #FE278
-Traceback (most recent call last):
-  File "test6.py", line 60, in <module>
-    main(debug=True)
-  File "test6.py", line 51, in main
-    send_can_message(bus, int(can_id, 16), can_data)
-  File "test6.py", line 7, in send_can_message
-    bus.send(message)
-  File "/usr/local/lib/python3.8/dist-packages/can/interfaces/socketcan/socketcan.py", line 768, in send
-    data = build_can_frame(msg)
-  File "/usr/local/lib/python3.8/dist-packages/can/interfaces/socketcan/socketcan.py", line 178, in build_can_frame
-    return CAN_FRAME_HEADER_STRUCT.pack(can_id, msg.dlc, flags) + data
-struct.error: argument out of range
-
-
