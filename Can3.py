@@ -25,11 +25,16 @@ def handle_device_twin_update(twin, bus):
     for sensor_id, telemetry_data in reported_properties.items():
         if isinstance(telemetry_data, dict):
             candump = convert_telemetry_to_candump(sensor_id, telemetry_data)
-            can_id, can_data = candump.split("_")
-            can_id = can_id.strip()
-            can_data = [int(byte) for byte in can_data.split("_")]
+            can_id, *can_data = candump.split("_")  # Use *can_data to capture all remaining values
 
-            send_can_message(bus, int(can_id), can_data)
+            if can_id.isnumeric():
+                # Convert can_id to integer
+                can_id = int(can_id)
+
+                # Convert can_data list elements to integers (excluding non-integer values)
+                can_data = [int(byte) for byte in can_data if byte.isdigit()]
+
+                send_can_message(bus, can_id, can_data)
 
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
@@ -47,13 +52,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-Traceback (most recent call last):
-  File "/home/azure/generic.py", line 49, in <module>
-    main()
-  File "/home/azure/generic.py", line 44, in main
-    handle_device_twin_update(twin, bus)
-  File "/home/azure/generic.py", line 32, in handle_device_twin_update
-    send_can_message(bus, int(can_id), can_data)
-ValueError: invalid literal for int() with base 10: 'sensor'
-SocketcanBus was not properly shut down
