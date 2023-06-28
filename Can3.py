@@ -24,17 +24,14 @@ def handle_device_twin_update(twin, bus):
 
     for sensor_id, telemetry_data in reported_properties.items():
         if isinstance(telemetry_data, dict):
-            candump = convert_telemetry_to_candump(sensor_id, telemetry_data)
-            can_id, *can_data = candump.split("_")  # Use *can_data to capture all remaining values
+            can_id_parts = sensor_id.split("_")  # Split the sensor_id to get the parts
+            if len(can_id_parts) >= 2:
+                can_id = can_id_parts[1]  # The numeric part is the can_id
 
-            if can_id.isnumeric():
-                # Convert can_id to integer
-                can_id = int(can_id)
+                candump = convert_telemetry_to_candump(sensor_id, telemetry_data)
+                can_data = [int(byte) for byte in candump.split("_")]
 
-                # Convert can_data list elements to integers (excluding non-integer values)
-                can_data = [int(byte) for byte in can_data if byte.isdigit()]
-
-                send_can_message(bus, can_id, can_data)
+                send_can_message(bus, int(can_id), can_data)
 
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
