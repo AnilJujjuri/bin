@@ -1,63 +1,26 @@
-import time
 from azure.iot.device import IoTHubDeviceClient
-import can
 
-def send_can_message(bus, can_id, data):
-    message = can.Message(arbitration_id=can_id, data=data)
-    bus.send(message)
-
-def convert_telemetry_to_candump(sensor_id, telemetry_data):
-    # Convert telemetry data to candump format
-    # Adjust the conversion logic based on your specific telemetry data structure
-
-    candump = f"{sensor_id}_"
-
-    for key, value in telemetry_data.items():
-        if isinstance(value, int):
-            value = int(value)  # Convert to integer
-
-        candump += f"{key}_{value}_"  # Append key-value pair to the candump string
-
-    return candump.rstrip("_")  # Remove the trailing underscore
-
-def handle_device_twin_update(twin, bus):
-    reported_properties = twin.get("reported")
-
-    if reported_properties is not None:
-        for sensor_id, telemetry_data in reported_properties.items():
-            if isinstance(telemetry_data, dict):
-                if "sensor" in telemetry_data:
-                    unique_key = telemetry_data.pop("sensor")
-                    can_id_parts = sensor_id.split("_")  # Split the sensor_id to get the parts
-                    if len(can_id_parts) >= 2 and can_id_parts[1].isnumeric():
-                        can_id = can_id_parts[1]  # The numeric part is the can_id
-
-                        candump = convert_telemetry_to_candump(sensor_id, telemetry_data)
-                        can_data = [int(byte) % 256 for byte in candump.split("_")[1:] if byte.isnumeric()]  # Convert and limit values to valid range
-
-                        send_can_message(bus, int(can_id), can_data)
-                        print(f"Sent CAN message for sensor {unique_key}")
-
-def main():
-    bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
-
-    device_connection_string = "HostName=your-iot-hub.azure-devices.net;DeviceId=your-device-id;SharedAccessKey=your-shared-access-key"
+def send_telemetry(device_connection_string, telemetry_data):
+    # Create an instance of the IoTHubDeviceClient
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
+    # Connect to IoT Hub
     client.connect()
 
-    last_twin_update = None  # Track the last processed twin update
+    # Send the telemetry data to the device twin
+    client.patch_twin_reported_properties(telemetry_data)
 
-    while True:
-        twin_updates = client.receive_twin_desired_properties_patch()  # Check for new twin updates
-
-        if twin_updates and twin_updates != last_twin_update:  # Compare with the last update
-            last_twin_update = twin_updates  # Update the last processed update
-            handle_device_twin_update(twin_updates, bus)
-        
-        time.sleep(1)  # Sleep for 1 second
-
+    # Disconnect from IoT Hub
     client.disconnect()
 
 if __name__ == '__main__':
-    main()
+    # Define the device connection string and telemetry data
+    connection_string = "HostName=your-iot-hub.azure-devices.net;DeviceId=your-device-id;SharedAccessKey=your-shared-access-key"
+    telemetry_data = {
+        "sensor": "unique_key",
+        "temperature": 25.5,
+        "humidity": 60.2
+    }
+
+    # Send telemetry data to device twin
+    send_telemetry(connection_string, telemetry_data)
