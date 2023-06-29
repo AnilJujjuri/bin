@@ -1,10 +1,21 @@
-Traceback (most recent call last):
-  File "/home/azure/test11.py", line 63, in <module>
-    main(debug=True)
-  File "/home/azure/test11.py", line 53, in main
-    handle_device_twin_update(twin, bus)
-  File "/home/azure/test11.py", line 37, in handle_device_twin_update
-    candump = convert_telemetry_to_candump(sensor_id, telemetry_data)
-  File "/home/azure/test11.py", line 22, in convert_telemetry_to_candump
-    value = max(min(value, 255), 0)
-TypeError: '<' not supported between instances of 'int' and 'str'
+def convert_telemetry_to_candump(sensor_id, telemetry_data):
+    candump = f"{sensor_id}_"
+
+    for key, value in telemetry_data.items():
+        if isinstance(value, int):
+            value = int(value)
+        elif isinstance(value, float):
+            value = int(value * 100)
+        elif isinstance(value, str):
+            try:
+                value = int(value)
+            except ValueError:
+                try:
+                    value = float(value)
+                except ValueError:
+                    continue  # Skip this key-value pair if conversion is not possible
+
+        value = max(min(value, 255), 0)
+        candump += f"{key}_{value}_"
+
+    return candump.rstrip("_")
