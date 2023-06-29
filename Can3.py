@@ -5,7 +5,7 @@ import time
 def send_can_message(bus, can_id, data):
     message = can.Message(arbitration_id=can_id, data=data)
     bus.send(message)
-    print (message)
+    print(message)
     
 
 def convert_telemetry_to_candump(sensor_id, telemetry_data):
@@ -42,7 +42,7 @@ def handle_device_twin_update(twin, bus):
             if len(can_id_parts) >= 2 and can_id_parts[1].isnumeric():
                 can_id = int(can_id_parts[1])
                 candump, can_data = convert_telemetry_to_candump(sensor_id, telemetry_data)
-                
+
                 send_can_message(bus, can_id, can_data)
 
 def main():
@@ -52,130 +52,23 @@ def main():
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
     client.connect()
-    retry_counter = 0 
+    retry_counter = 0
     while True:
-        twin = client.get_twin()
-        handle_device_twin_update(twin, bus)
-        # Retry mechanism
-        if retry_counter < 3:
-            time.sleep(10)  # Wait for 10 seconds between retries
-            retry_counter += 1
-        else:
-            break  # Disconnect after the maximum number of retries
+        try:
+            twin = client.get_twin()
+            handle_device_twin_update(twin, bus)
+            # Retry mechanism
+            if retry_counter < 3:
+                time.sleep(10)  # Wait for 10 seconds between retries
+                retry_counter += 1
+            else:
+                break  # Disconnect after the maximum number of retries
+        except Exception as e:
+            print("Exception caught:", str(e))
+            continue
+
     client.disconnect()
-    
-    
+
+
 if __name__ == '__main__':
     main()
-
-
-Timestamp:        0.000000    ID: 000004d2    X Rx                DL:  2    19 3c
-Timestamp:        0.000000    ID: 000004d3    X Rx                DL:  3    03 19 28
-Timestamp:        0.000000    ID: 0000007d    X Rx                DL:  3    06 1c 3c
-Timestamp:        0.000000    ID: 0000007e    X Rx                DL:  3    06 1c 3c
-Timestamp:        0.000000    ID: 0000007f    X Rx                DL:  3    06 1c 3c
-Timestamp:        0.000000    ID: 00000082    X Rx                DL:  3    05 1c 3c
-Timestamp:        0.000000    ID: 00000083    X Rx                DL:  2    1c 3c
-Timestamp:        0.000000    ID: 00000087    X Rx                DL:  2    1c 3c
-Timestamp:        0.000000    ID: 0000008b    X Rx                DL:  3    04 1c 3c
-Timestamp:        0.000000    ID: 0000008c    X Rx                DL:  3    04 1d 3e
-Timestamp:        0.000000    ID: 00000091    X Rx                DL:  3    04 21 46
-Timestamp:        0.000000    ID: 00000093    X Rx                DL:  3    04 21 46
-Timestamp:        0.000000    ID: 00000094    X Rx                DL:  3    04 21 46
-Timestamp:        0.000000    ID: 00000095    X Rx                DL:  3    04 23 46
-Timestamp:        0.000000    ID: 00000092    X Rx                DL:  3    04 23 46
-Timestamp:        0.000000    ID: 00000097    X Rx                DL:  3    07 23 46
-Timestamp:        0.000000    ID: 00000098    X Rx                DL:  3    05 23 46
-Timestamp:        0.000000    ID: 00000099    X Rx                DL:  4    07 23 46 04
-Timestamp:        0.000000    ID: 0000009a    X Rx                DL:  4    07 23 46 04
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Timestamp:        0.000000    ID: 000004d2    X Rx                DL:  2    19 3c
-Timestamp:        0.000000    ID: 000004d3    X Rx                DL:  3    03 19 28
-Timestamp:        0.000000    ID: 0000007d    X Rx                DL:  3    06 1c 3c
-Timestamp:        0.000000    ID: 0000007e    X Rx                DL:  3    06 1c 3c
-Timestamp:        0.000000    ID: 0000007f    X Rx                DL:  3    06 1c 3c
-Timestamp:        0.000000    ID: 00000082    X Rx                DL:  3    05 1c 3c
-Timestamp:        0.000000    ID: 00000083    X Rx                DL:  2    1c 3c
-Timestamp:        0.000000    ID: 00000087    X Rx                DL:  2    1c 3c
-Timestamp:        0.000000    ID: 0000008b    X Rx                DL:  3    04 1c 3c
-Timestamp:        0.000000    ID: 0000008c    X Rx                DL:  3    04 1d 3e
-Timestamp:        0.000000    ID: 00000091    X Rx                DL:  3    04 21 46
-Timestamp:        0.000000    ID: 00000093    X Rx                DL:  3    04 21 46
-Timestamp:        0.000000    ID: 00000094    X Rx                DL:  3    04 21 46
-Timestamp:        0.000000    ID: 00000095    X Rx                DL:  3    04 23 46
-Timestamp:        0.000000    ID: 00000092    X Rx                DL:  3    04 23 46
-Timestamp:        0.000000    ID: 00000097    X Rx                DL:  3    07 23 46
-Timestamp:        0.000000    ID: 00000098    X Rx                DL:  3    05 23 46
-Timestamp:        0.000000    ID: 00000099    X Rx                DL:  4    07 23 46 04
-Timestamp:        0.000000    ID: 0000009a    X Rx                DL:  4    07 23 46 04
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Timestamp:        0.000000    ID: 000004d2    X Rx                DL:  2    19 3c
-Timestamp:        0.000000    ID: 000004d3    X Rx                DL:  3    03 19 28
-Timestamp:        0.000000    ID: 0000007d    X Rx                DL:  3    06 1c 3c
-Timestamp:        0.000000    ID: 0000007e    X Rx                DL:  3    06 1c 3c
-Timestamp:        0.000000    ID: 0000007f    X Rx                DL:  3    06 1c 3c
-Timestamp:        0.000000    ID: 00000082    X Rx                DL:  3    05 1c 3c
-Timestamp:        0.000000    ID: 00000083    X Rx                DL:  2    1c 3c
-Timestamp:        0.000000    ID: 00000087    X Rx                DL:  2    1c 3c
-Timestamp:        0.000000    ID: 0000008b    X Rx                DL:  3    04 1c 3c
-Timestamp:        0.000000    ID: 0000008c    X Rx                DL:  3    04 1d 3e
-Timestamp:        0.000000    ID: 00000091    X Rx                DL:  3    04 21 46
-Timestamp:        0.000000    ID: 00000093    X Rx                DL:  3    04 21 46
-Timestamp:        0.000000    ID: 00000094    X Rx                DL:  3    04 21 46
-Timestamp:        0.000000    ID: 00000095    X Rx                DL:  3    04 23 46
-Timestamp:        0.000000    ID: 00000092    X Rx                DL:  3    04 23 46
-Timestamp:        0.000000    ID: 00000097    X Rx                DL:  3    07 23 46
-Timestamp:        0.000000    ID: 00000098    X Rx                DL:  3    05 23 46
-Timestamp:        0.000000    ID: 00000099    X Rx                DL:  4    07 23 46 04
-Timestamp:        0.000000    ID: 0000009a    X Rx                DL:  4    07 23 46 04
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Timestamp:        0.000000    ID: 000004d2    X Rx                DL:  2    19 3c
-Timestamp:        0.000000    ID: 000004d3    X Rx                DL:  3    03 19 28
-Timestamp:        0.000000    ID: 0000007d    X Rx                DL:  3    06 1c 3c
-Timestamp:        0.000000    ID: 0000007e    X Rx                DL:  3    06 1c 3c
-Timestamp:        0.000000    ID: 0000007f    X Rx                DL:  3    06 1c 3c
-Timestamp:        0.000000    ID: 00000082    X Rx                DL:  3    05 1c 3c
-Timestamp:        0.000000    ID: 00000083    X Rx                DL:  2    1c 3c
-Timestamp:        0.000000    ID: 00000087    X Rx                DL:  2    1c 3c
-Timestamp:        0.000000    ID: 0000008b    X Rx                DL:  3    04 1c 3c
-Timestamp:        0.000000    ID: 0000008c    X Rx                DL:  3    04 1d 3e
-Timestamp:        0.000000    ID: 00000091    X Rx                DL:  3    04 21 46
-Timestamp:        0.000000    ID: 00000093    X Rx                DL:  3    04 21 46
-Timestamp:        0.000000    ID: 00000094    X Rx                DL:  3    04 21 46
-Timestamp:        0.000000    ID: 00000095    X Rx                DL:  3    04 23 46
-Timestamp:        0.000000    ID: 00000092    X Rx                DL:  3    04 23 46
-Timestamp:        0.000000    ID: 00000097    X Rx                DL:  3    07 23 46
-Timestamp:        0.000000    ID: 00000098    X Rx                DL:  3    05 23 46
-Timestamp:        0.000000    ID: 00000099    X Rx                DL:  4    07 23 46 04
-Timestamp:        0.000000    ID: 0000009a    X Rx                DL:  4    07 23 46 04
