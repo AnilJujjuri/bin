@@ -1,13 +1,11 @@
 from azure.iot.device import IoTHubDeviceClient
 import can
 import time
-import struct
 
 def send_can_message(bus, can_id, data):
-    can_data=[byte % 256 for byte in data]
+    can_data = [byte % 256 for byte in data]
     message = can.Message(arbitration_id=can_id, data=can_data)
     bus.send(message)
-
 
 def convert_telemetry_to_candump(sensor_id, telemetry_data):
     candump = f"{sensor_id}_"
@@ -26,6 +24,10 @@ def convert_telemetry_to_candump(sensor_id, telemetry_data):
                 except ValueError:
                     continue  # Skip this key-value pair if conversion is not possible
 
+        # Skip the value if it is zero
+        if value == 0:
+            continue
+
         value = max(min(value, 255), 0)
         candump += f"{key}_{value}_"
 
@@ -41,9 +43,8 @@ def handle_device_twin_update(twin, bus):
                 can_id = can_id_parts[1]
                 candump = convert_telemetry_to_candump(sensor_id, telemetry_data)
                 can_data = [int(byte) for byte in candump.split("_")[1:] if byte.isnumeric()]
-                print(can_data)							
                 send_can_message(bus, int(can_id), can_data)
-				
+
 def main(debug=False):
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
@@ -57,7 +58,7 @@ def main(debug=False):
         handle_device_twin_update(twin, bus)
         # Retry mechanism
         if retry_counter < 3:
-            time.sleep(100)  # Wait for 10 seconds between retries
+            time.sleep(10)  # Wait for 10 seconds between retries
             retry_counter += 1
         else:
             break  # Disconnect after the maximum number of retries
