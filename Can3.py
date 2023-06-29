@@ -1,10 +1,16 @@
-Traceback (most recent call last):
-  File "/home/azure/test11.py", line 61, in <module>
-    main(debug=True)
-  File "/home/azure/test11.py", line 51, in main
-    handle_device_twin_update(twin, bus)
-  File "/home/azure/test11.py", line 39, in handle_device_twin_update
-    send_can_message(bus, int(can_id), can_data)
-  File "/home/azure/test11.py", line 7, in send_can_message
-    message_data=bytes(data)
-ValueError: bytes must be in range(0, 256)
+
+def convert_telemetry_to_candump(sensor_id, telemetry_data):
+    candump = f"{sensor_id}_"
+
+    for key, value in telemetry_data.items():
+        if isinstance(value, int):
+            value = int(value)  # Convert to integer
+        elif isinstance(value, float):
+            value = int(value * 100)  # Scale float values and convert to integer
+
+        # Limit value to valid byte range
+        value = max(min(value, 255), 0)
+
+        candump += f"{key}_{value}_"  # Append key-value pair to the candump string
+
+    return candump.rstrip("_")  # Remove the trailing underscore
