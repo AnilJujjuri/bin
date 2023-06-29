@@ -3,31 +3,33 @@ import can
 import time
 
 def send_can_message(bus, can_id, data):
-    can_data = [byte % 256 for byte in data]
-    message = can.Message(arbitration_id=can_id, data=can_data)
+    message = can.Message(arbitration_id=can_id, data=data)
     bus.send(message)
 
 def convert_telemetry_to_candump(sensor_id, telemetry_data):
     candump = f"{sensor_id}_"
+    can_data = []
 
     for key, value in telemetry_data.items():
         if isinstance(value, int):
-            value = int(value)
+            byte_value = value % 256
         elif isinstance(value, float):
-            value = int(value * 100)
+            byte_value = int(value) % 256
         elif isinstance(value, str):
             try:
-                value = int(value)
+                byte_value = int(value) % 256
             except ValueError:
                 try:
-                    value = float(value)
+                    byte_value = int(float(value)) % 256
                 except ValueError:
                     continue  # Skip this key-value pair if conversion is not possible
+        else:
+            continue  # Skip unsupported data types
 
-        value = max(min(value, 255), 0)
-        candump += f"{key}_{value}_"
+        can_data.append(byte_value)
+        candump += f"{key}_{byte_value}_"
 
-    return candump.rstrip("_")
+    return candump.rstrip("_"), can_data
 
 def handle_device_twin_update(twin, bus):
     reported_properties = twin["reported"]
@@ -36,12 +38,9 @@ def handle_device_twin_update(twin, bus):
         if isinstance(telemetry_data, dict):
             can_id_parts = sensor_id.split("_")
             if len(can_id_parts) >= 2 and can_id_parts[1].isnumeric():
-                can_id = can_id_parts[1]
-                candump = convert_telemetry_to_candump(sensor_id, telemetry_data)
-                can_data = [int(byte) for byte in candump.split("_")[1:] if byte.isnumeric()]
-                if not can_data:  # Check if the can_data list is empty
-                    can_data = [255]  # Replace with 255 if there are no valid values
-                send_can_message(bus, int(can_id), can_data)
+                can_id = int(can_id_parts[1])
+                candump, can_data = convert_telemetry_to_candump(sensor_id, telemetry_data)
+                send_can_message(bus, can_id, can_data)
 
 def main(debug=False):
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
