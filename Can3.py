@@ -1,5 +1,5 @@
+import time
 from azure.iot.device import IoTHubDeviceClient
-import can
 
 def send_can_message(bus, can_id, data):
     message = can.Message(arbitration_id=can_id, data=data)
@@ -32,7 +32,6 @@ def handle_device_twin_update(twin, bus):
                 can_data = [int(byte) % 256 for byte in candump.split("_")[1:] if byte.isnumeric()]  # Convert and limit values to valid range
 
                 send_can_message(bus, int(can_id), can_data)
-                
 
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
@@ -40,13 +39,30 @@ def main():
     device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
-    client.connect()
+    retry_count = 0
+    retry_limit = 3
+    retry_delay = 10
 
-    while True:
-        twin = client.get_twin()
-        handle_device_twin_update(twin, bus)
+    while retry_count < retry_limit:
+        try:
+            client.connect()
 
-        client.disconnect()
+            while True:
+                twin = client.get_twin()
+                handle_device_twin_update(twin, bus)
+
+                time.sleep(1)
+
+        except Exception as e:
+            print("An error occurred:", str(e))
+            retry_count += 1
+            print(f"Retry attempt {retry_count}/{retry_limit}. Retrying in {retry_delay} seconds...")
+            time.sleep(retry_delay)
+
+        finally:
+            client.disconnect()
+
+    print(f"Unable to establish connection after {retry_limit} attempts. Exiting...")
 
 if __name__ == '__main__':
     main()
