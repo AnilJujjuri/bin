@@ -6,7 +6,6 @@ def send_can_message(bus, can_id, data):
     message = can.Message(arbitration_id=can_id, data=data)
     bus.send(message)
     print(message)
-    
 
 def convert_telemetry_to_candump(sensor_id, telemetry_data):
     candump = f"{sensor_id}_"
@@ -33,7 +32,17 @@ def convert_telemetry_to_candump(sensor_id, telemetry_data):
 
     return candump.rstrip("_"), can_data
 
-def handle_device_twin_update(twin, bus):
+class CanController:
+    def __init__(self):
+        self.last_messages = {}
+
+    def send_can_message(self, can_id, can_data):
+        message_key = f"{can_id}_{can_data}"
+        if message_key not in self.last_messages:
+            self.last_messages[message_key] = True
+            send_can_message(bus, can_id, can_data)
+
+def handle_device_twin_update(twin, can_controller):
     reported_properties = twin["reported"]
 
     for sensor_id, telemetry_data in reported_properties.items():
@@ -43,7 +52,7 @@ def handle_device_twin_update(twin, bus):
                 can_id = int(can_id_parts[1])
                 candump, can_data = convert_telemetry_to_candump(sensor_id, telemetry_data)
 
-                send_can_message(bus, can_id, can_data)
+                can_controller.send_can_message(can_id, can_data)
 
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
@@ -53,10 +62,11 @@ def main():
 
     client.connect()
     retry_counter = 0
+    can_controller = CanController()
     while True:
         try:
             twin = client.get_twin()
-            handle_device_twin_update(twin, bus)
+            handle_device_twin_update(twin, can_controller)
             # Retry mechanism
             if retry_counter < 3:
                 time.sleep(10)  # Wait for 10 seconds between retries
@@ -68,7 +78,6 @@ def main():
             continue
 
     client.disconnect()
-
 
 if __name__ == '__main__':
     main()
