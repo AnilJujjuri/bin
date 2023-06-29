@@ -24,10 +24,6 @@ def convert_telemetry_to_candump(sensor_id, telemetry_data):
                 except ValueError:
                     continue  # Skip this key-value pair if conversion is not possible
 
-        # Skip the value if it is zero
-        if value == 0:
-            continue
-
         value = max(min(value, 255), 0)
         candump += f"{key}_{value}_"
 
@@ -43,6 +39,8 @@ def handle_device_twin_update(twin, bus):
                 can_id = can_id_parts[1]
                 candump = convert_telemetry_to_candump(sensor_id, telemetry_data)
                 can_data = [int(byte) for byte in candump.split("_")[1:] if byte.isnumeric()]
+                if not can_data:  # Check if the can_data list is empty
+                    can_data = [255]  # Replace with 255 if there are no valid values
                 send_can_message(bus, int(can_id), can_data)
 
 def main(debug=False):
