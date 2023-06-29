@@ -26,14 +26,17 @@ def handle_device_twin_update(twin, bus):
     if reported_properties is not None:
         for sensor_id, telemetry_data in reported_properties.items():
             if isinstance(telemetry_data, dict):
-                can_id_parts = sensor_id.split("_")  # Split the sensor_id to get the parts
-                if len(can_id_parts) >= 2 and can_id_parts[1].isnumeric():
-                    can_id = can_id_parts[1]  # The numeric part is the can_id
+                if "sensor" in telemetry_data:
+                    unique_key = telemetry_data.pop("sensor")
+                    can_id_parts = sensor_id.split("_")  # Split the sensor_id to get the parts
+                    if len(can_id_parts) >= 2 and can_id_parts[1].isnumeric():
+                        can_id = can_id_parts[1]  # The numeric part is the can_id
 
-                    candump = convert_telemetry_to_candump(sensor_id, telemetry_data)
-                    can_data = [int(byte) % 256 for byte in candump.split("_")[1:] if byte.isnumeric()]  # Convert and limit values to valid range
+                        candump = convert_telemetry_to_candump(sensor_id, telemetry_data)
+                        can_data = [int(byte) % 256 for byte in candump.split("_")[1:] if byte.isnumeric()]  # Convert and limit values to valid range
 
-                    send_can_message(bus, int(can_id), can_data)
+                        send_can_message(bus, int(can_id), can_data)
+                        print(f"Sent CAN message for sensor {unique_key}")
 
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
