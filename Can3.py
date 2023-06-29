@@ -1,56 +1,21 @@
-from azure.iot.device import IoTHubDeviceClient
-import can
-import time
+Traceback (most recent call last):
+  File "/home/Machine1/.local/lib/python3.8/site-packages/can/interfaces/socketcan/socketcan.py", line 792, in _send_once
+    sent = self.socket.send(data)
+OSError: [Errno 22] Invalid argument
 
-def send_can_message(bus, can_id, data):
-    can_data = [byte % 256 for byte in data]
-    message = can.Message(arbitration_id=can_id, data=can_data)
-    bus.send(message)
+During handling of the above exception, another exception occurred:
 
-def convert_telemetry_to_candump(sensor_id, telemetry_data):
-    # Convert telemetry data to candump format
-    # Adjust the conversion logic based on your specific telemetry data structure
-    candump = f"{sensor_id}_"
-    for key, value in telemetry_data.items():
-        if isinstance(value, int):
-            value = int(value)  # Convert to integer
-        elif isinstance(value, float):
-            value = round(value, 2)  # Round float value to 2 decimal places
-        else:
-            continue  # Skip unsupported data type
-        candump += f"{key}_{value}_"  # Append key-value pair to the candump string
-    return candump.rstrip("_")  # Remove the trailing underscore
-
-def handle_device_twin_update(twin, bus):
-    reported_properties = twin["reported"]
-
-    for sensor_id, telemetry_data in reported_properties.items():
-        if isinstance(telemetry_data, dict):
-            can_id_parts = sensor_id.split("_")  # Split the sensor_id to get the parts
-            if len(can_id_parts) >= 2 and can_id_parts[1].isnumeric():
-                can_id = int(can_id_parts[1])  # The numeric part is the can_id
-                candump = convert_telemetry_to_candump(sensor_id, telemetry_data)
-                can_data = [byte for byte in candump.encode()]
-                send_can_message(bus, can_id, can_data)
-
-def main(debug=False):
-    bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
-
-    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
-    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
-
-    client.connect()
-    retry_counter = 0 
-    while True:
-        twin = client.get_twin()
-        handle_device_twin_update(twin, bus)
-        # Retry mechanism
-        if retry_counter < 3:
-            time.sleep(10)  # Wait for 10 seconds between retries
-            retry_counter += 1
-        else:
-            break  # Disconnect after the maximum number of retries
-    client.disconnect()
-
-if __name__ == '__main__':
+Traceback (most recent call last):
+  File "/home/azure/test11.py", line 55, in <module>
     main(debug=True)
+  File "/home/azure/test11.py", line 45, in main
+    handle_device_twin_update(twin, bus)
+  File "/home/azure/test11.py", line 33, in handle_device_twin_update
+    send_can_message(bus, can_id, can_data)
+  File "/home/azure/test11.py", line 8, in send_can_message
+    bus.send(message)
+  File "/home/Machine1/.local/lib/python3.8/site-packages/can/interfaces/socketcan/socketcan.py", line 777, in send
+    sent = self._send_once(data, channel)
+  File "/home/Machine1/.local/lib/python3.8/site-packages/can/interfaces/socketcan/socketcan.py", line 794, in _send_once
+    raise can.CanOperationError(
+can.exceptions.CanOperationError: Failed to transmit: Invalid argument [Error Code 22]
