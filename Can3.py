@@ -24,3 +24,12 @@ if __name__ == '__main__':
 
     # Send telemetry data to device twin
     send_telemetry(connection_string, telemetry_data)
+
+
+ERROR: for integration340_mender-api-gateway_1  Cannot start service mender-api-gateway: driver failed programming external connectivity on endpoint integration340_mender-api-gateway_1 (3184c328ae4635af67630a0030642a59ab5700e15e6e9fa7806467f3d267d9d3): Bind for 0.0.0.0:443 failed: port is already allocated
+
+ 
+
+ERROR: for mender-api-gateway  Cannot start service mender-api-gateway: driver failed programming external connectivity on endpoint integration340_mender-api-gateway_1 (3184c328ae4635af67630a0030642a59ab5700e15e6e9fa7806467f3d267d9d3): Bind for 0.0.0.0:443 failed: port is already allocated
+ERROR: Encountered errors while bringing up the project.
+Failed to start docker compose
