@@ -1,12 +1,49 @@
-Client created
-Session created
-Traceback (most recent call last):
-  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 49, in <module>
-    main()
-  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 18, in main
+from opcua import Client
+
+def main():
+    # Create a client and connect to the server
+    client = Client("opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer")
+    client.application_uri = "urn:RustClient"
+    client.set_security_string("None")
+    client.session_timeout = 60000
+    client.connect()
+
+    print("Client created")
+    
+    # Create a session
+    session = client.create_session()
+    print("Session created")
+
+    # Create a subscription and monitored items
     if subscribe_to_values(session):
-  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 27, in subscribe_to_values
-    subscription = Client.create_subscription(2000, 10, 30)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\client\client.py", line 565, in create_subscription
-    return Subscription(self.uaclient, params, handler)
-AttributeError: 'int' object has no attribute 'uaclient'
+        print("Subscribed")
+        client.disconnect()
+        print("Client disconnected")
+    else:
+        print("Error creating subscription")
+
+def subscribe_to_values(session):
+    # Create a subscription
+    subscription = session.create_subscription(2000)
+
+    # Create some monitored items
+    monitored_item1 = subscription.create_monitored_item(1003, AttributeId.Value)
+    monitored_item2 = subscription.create_monitored_item(1008, AttributeId.Value)
+    monitored_item3 = subscription.create_monitored_item(1009, AttributeId.Value)
+    monitored_item4 = subscription.create_monitored_item(1010, AttributeId.Value)
+
+    # Start the subscription
+    subscription.subscribe_data_change()
+
+    # Print the values when a data change occurs
+    def data_change_handler(event):
+        for item in event.monitored_items:
+            print(f"Item '{item.nodeid}', Value = {item.get_value()}")
+
+    # Assign the data change handler to the subscription
+    subscription.data_change_event += data_change_handler
+
+    return True
+
+if __name__ == "__main__":
+    main()
