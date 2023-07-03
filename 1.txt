@@ -1,48 +1,33 @@
-from opcua import Client
-from opcua.ua import NodeId, AttributeIds, DataValue, Variant
-import time
-
-def main():
-    client = Client("opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer")
-    client.connect()
-
-    print("Client created")
-
-    # Retrieve the namespace index for the "SimulationServer" namespace
-    uri = "http://opcfoundation.org/UA/SimulationServer"
-    namespace_index = client.get_namespace_index(uri)
-
-    # Construct the NodeId for the "random" node
-    node_id = NodeId(namespace_index, "random")
-
-    value = 20
-
-    try:
-        while True:
-            # Write the value to the node attribute
-            node = client.get_node(node_id)
-            data_value = DataValue(Variant(value))
-            node.set_attribute(AttributeIds.Value, data_value)
-
-            print("Value written successfully")
-
-            # Read the value from the node
-            data_value = node.get_value()
-            if data_value is not None:
-                print(f"Item \"{node_id}\", Value = {data_value.Value.VariantType}")
-            else:
-                print(f"Item \"{node_id}\", Value not found")
-
-            # Increment the value for the next iteration
-            value += 1
-
-            # Wait for some time before the next iteration
-            time.sleep(2)
-
-    except KeyboardInterrupt:
-        pass
-
-    client.disconnect()
-
-if __name__ == '__main__':
+File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 48, in <module>
     main()
+  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 25, in main
+    node.set_attribute(AttributeIds.Value, data_value)
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\common\node.py", line 262, in set_attribute
+    result = self.server.write(params)
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\client\ua_client.py", line 367, in write
+    data = self._uasocket.send_request(request)
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\client\ua_client.py", line 81, in send_request
+    future = self._send_request(request, callback, timeout, message_type)
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\client\ua_client.py", line 55, in _send_request
+    binreq = struct_to_binary(request)
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 261, in struct_to_binary
+    packet.append(to_binary(uatype, val))
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 284, in to_binary
+    return struct_to_binary(val)
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 256, in struct_to_binary
+    packet.append(list_to_binary(uatype[6:], val))
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 296, in list_to_binary
+    pack = [to_binary(uatype, el) for el in val]
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 296, in <listcomp>
+    pack = [to_binary(uatype, el) for el in val]
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 284, in to_binary
+    return struct_to_binary(val)
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 261, in struct_to_binary
+    packet.append(to_binary(uatype, val))
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 274, in to_binary
+    return pack_uatype(vtype, val)
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 190, in pack_uatype
+    return nodeid_to_binary(value)
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 308, in nodeid_to_binary
+    data = struct.pack("<BHI", nodeid.NodeIdType.value, nodeid.NamespaceIndex, nodeid.Identifier)
+struct.error: required argument is not an integer
