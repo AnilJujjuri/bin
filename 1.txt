@@ -1,59 +1,48 @@
-
-from opcua import Client, ua
-
+from opcua import Client
+from opcua.ua import NodeId, AttributeIds, DataValue, Variant
+import time
 
 def main():
     client = Client("opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer")
-    client.set_security_string("None")
-    client.application_uri = "urn:RustClient"
-    client.session_timeout = 10000
     client.connect()
+
     print("Client created")
 
-    # Create a subscription and monitored items
-    if subscribe_to_values(client).is_ok():
-        print("Subscribed")
-    else:
-        print("Error creating subscription")
+    # Retrieve the namespace index for the "SimulationServer" namespace
+    uri = "http://opcfoundation.org/UA/SimulationServer"
+    namespace_index = client.get_namespace_index(uri)
 
+    # Construct the NodeId for the "random" node
+    node_id = NodeId(namespace_index, "random")
 
-def subscribe_to_values(client):
-    # Create a subscription
-    subscription = client.create_subscription(2000, None)
+    value = 20
 
-    # Create some monitored items
-    items_to_create = [ua.NodeId(3, ua.Identifier(i)) for i in [1003, 1008, 1009, 1010]]
-    monitored_items = subscription.subscribe_data_change(items_to_create)
+    try:
+        while True:
+            # Write the value to the node attribute
+            node = client.get_node(node_id)
+            data_value = DataValue(Variant(value))
+            node.set_attribute(AttributeIds.Value, data_value)
 
-    # Define a callback function for data changes
-    def data_change_callback(_, data_value):
-        print("Data change from server:")
-        print_value(data_value)
+            print("Value written successfully")
 
-    # Set the callback function for the monitored items
-    monitored_items.add_callback(data_change_callback)
+            # Read the value from the node
+            data_value = node.get_value()
+            if data_value is not None:
+                print(f"Item \"{node_id}\", Value = {data_value.Value.VariantType}")
+            else:
+                print(f"Item \"{node_id}\", Value not found")
 
-    # Write a value to a node
-    node_id = ua.NodeId(3, ua.Identifier(1012))
-    value = ua.Variant(20, ua.VariantType.UInt32)
-    status_code = client.uaclient.write_attributes(node_id, ua.WriteValue(value, ua.AttributeIds.Value))
+            # Increment the value for the next iteration
+            value += 1
 
-    if status_code.is_good():
-        print("Value written successfully")
-    else:
-        print(f"Error writing to node: {status_code}")
+            # Wait for some time before the next iteration
+            time.sleep(2)
 
-    print("Created")
-    return status_code
+    except KeyboardInterrupt:
+        pass
 
+    client.disconnect()
 
-def print_value(data_value):
-    if data_value.Value.ValueType != ua.VariantType.Null:
-        print(f"Value = {data_value.Value.Value}")
-    else:
-        print(f"Value not found, error: {data_value.StatusCode}")
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
-
