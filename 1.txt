@@ -6,5 +6,7 @@ Traceback (most recent call last):
   File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 18, in main
     if subscribe_to_values(session):
   File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 27, in subscribe_to_values
-    subscription = session.create_subscription(2000, 10, 30)
-AttributeError: 'CreateSessionResult' object has no attribute 'create_subscription'
+    subscription = Client.create_subscription(2000, 10, 30)
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\client\client.py", line 565, in create_subscription
+    return Subscription(self.uaclient, params, handler)
+AttributeError: 'int' object has no attribute 'uaclient'
