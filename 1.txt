@@ -1,49 +1,34 @@
-from opcua import Client
+from opcua import Client, ua
 
 def main():
-    # Create a client and connect to the server
     client = Client("opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer")
-    client.application_uri = "urn:RustClient"
+    client.application_name = "Python-OPCUA-Client"
     client.set_security_string("None")
     client.session_timeout = 60000
-    client.connect()
 
     print("Client created")
-    
-    # Create a session
-    session = client.create_session()
+
+    client.connect()
     print("Session created")
 
-    # Create a subscription and monitored items
-    if subscribe_to_values(session):
-        print("Subscribed")
-        client.disconnect()
-        print("Client disconnected")
-    else:
-        print("Error creating subscription")
+    subscription = client.create_subscription(2000, ua.OPCSubscription(10), ua.OPCPublishingInterval(30))
+    print("Subscription created")
 
-def subscribe_to_values(session):
-    # Create a subscription
-    subscription = session.create_subscription(2000)
+    items_to_create = [ua.NodeId(3, v) for v in [1003, 1008, 1009, 1010]]
+    monitored_items = subscription.create_monitored_items(items_to_create)
+    print("Monitored items created")
 
-    # Create some monitored items
-    monitored_item1 = subscription.create_monitored_item(1003, AttributeId.Value)
-    monitored_item2 = subscription.create_monitored_item(1008, AttributeId.Value)
-    monitored_item3 = subscription.create_monitored_item(1009, AttributeId.Value)
-    monitored_item4 = subscription.create_monitored_item(1010, AttributeId.Value)
+    write_value = ua.WriteValue()
+    write_value.node_id = ua.NodeId(3, 1012)
+    write_value.value = ua.DataValue(20)
+    write_value.attribute_id = ua.AttributeIds.Value
+    write_value.index_range = None
 
-    # Start the subscription
-    subscription.subscribe_data_change()
+    client.uaclient.write([write_value])
+    print("Value written successfully")
 
-    # Print the values when a data change occurs
-    def data_change_handler(event):
-        for item in event.monitored_items:
-            print(f"Item '{item.nodeid}', Value = {item.get_value()}")
-
-    # Assign the data change handler to the subscription
-    subscription.data_change_event += data_change_handler
-
-    return True
+    print("Subscribed")
+    client.disconnect()
 
 if __name__ == "__main__":
     main()
