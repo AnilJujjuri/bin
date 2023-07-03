@@ -1,42 +1,4 @@
-from opcua import Client
-from opcua.ua import NodeId, AttributeId, DataValue, Variant
-import time
-
-def main():
-    client = Client("opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer")
-    client.connect()
-
-    print("Client created")
-
-    node_id = "ns=3;i=1003"
-    value = 20
-
-    try:
-        while True:
-            # Write the value to the node attribute
-            node = client.get_node(node_id)
-            data_value = DataValue(Variant(value))
-            node.set_attribute(AttributeId.Value, data_value)
-
-            print("Value written successfully")
-
-            # Read the value from the node
-            data_value = node.get_value()
-            if data_value is not None:
-                print(f"Item \"{node_id}\", Value = {data_value.Value.VariantType}")
-            else:
-                print(f"Item \"{node_id}\", Value not found")
-
-            # Increment the value for the next iteration
-            value += 1
-
-            # Wait for some time before the next iteration
-            time.sleep(2)
-
-    except KeyboardInterrupt:
-        pass
-
-    client.disconnect()
-
-if __name__ == '__main__':
-    main()
+Traceback (most recent call last):
+  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 2, in <module>
+    from opcua.ua import NodeId, AttributeId, DataValue, Variant
+ImportError: cannot import name 'AttributeId' from 'opcua.ua' (C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\__init__.py)
