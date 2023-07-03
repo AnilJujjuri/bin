@@ -1,4 +1,6 @@
-File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 48, in <module>
+Client created
+Traceback (most recent call last):
+  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 48, in <module>
     main()
   File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 25, in main
     node.set_attribute(AttributeIds.Value, data_value)
