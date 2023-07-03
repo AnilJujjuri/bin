@@ -1,11 +1,91 @@
-Client created
-Traceback (most recent call last):
-  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 43, in <module>
-    main()
-  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 20, in main
-    node.set_attribute(AttributeIds.Value, data_value)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\common\node.py", line 263, in set_attribute
-    result[0].check()
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\uatypes.py", line 218, in check
-    raise UaStatusCodeError(self.value)
-opcua.ua.uaerrors._auto.BadNotWritable: "The access level does not allow writing to the Node."(BadNotWritable)
+use std::sync::Arc;
+use opcua::client::prelude::*;
+use opcua::sync::*;
+use opcua::types::data_value::{DataValue};
+use opcua::types::string::*;
+use opcua::types::service_types::*;
+use opcua::types::{ExpandedNodeId, NodeId, ObjectId, ObjectTypeId};
+use opcua::types::extension_object::{ExtensionObject};
+
+
+fn main() {
+    let mut client = ClientBuilder::new()
+        .application_name("RUST-OPCUA-Client")
+        .application_uri("urn:RustClient")
+        .create_sample_keypair(true)
+        .trust_server_certs(true)
+        .session_retry_limit(3)
+        .client().unwrap();
+    
+    println!("Client created");
+
+    // Create an endpoint. The EndpointDescription can be made from a tuple consisting of
+    // the endpoint url, security policy, message security mode and user token policy.
+    let endpoint: EndpointDescription = (
+        "opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer",
+        "None",
+        MessageSecurityMode::None,
+        UserTokenPolicy::anonymous()
+    ).into();
+
+    // Create the session
+    let session = client.connect_to_endpoint(endpoint, IdentityToken::Anonymous).unwrap();  
+ 
+    println!("Session created");
+
+    // Create a subscription and monitored items
+    if subscribe_to_values(session.clone()).is_ok() {
+        println!("Subscribed");
+        let _ = Session::run(session);
+    } else {
+        println!("Error creating subscription");
+    }
+}
+
+fn subscribe_to_values(session: Arc<RwLock<Session>>) -> Result<(), StatusCode> {
+    let session = session.write();
+    // Create a subscription polling every 2s with a callback
+    let subscription_id = session.create_subscription(2000.0, 10, 30, 0, 0, true, DataChangeCallback::new(|changed_monitored_items| {
+        println!("Data change from server:");
+        changed_monitored_items.iter().for_each(|item| print_value(item));
+    }))?;
+    // Create some monitored items
+    let items_to_create: Vec<MonitoredItemCreateRequest> = [1003,1008,1009,1010].iter()
+        .map(|v| NodeId::new(3, *v).into()).collect();
+    let _ = session.create_monitored_items(subscription_id, TimestampsToReturn::Both, &items_to_create)?;
+
+    let status_code = session.write(&[WriteValue{
+        node_id: NodeId::new(3,1012),
+        value: DataValue::value_only(20),
+        attribute_id: 7,
+        index_range: UAString::null()
+    }]);    
+
+    match status_code {
+        Ok(_) => println!("Value written successfully"),
+        Err(status_code) => {
+            println!("Error writing to node: {:?}", status_code);
+            match status_code {
+                StatusCode::BadSessionClosed => {
+                    println!("Session was closed by the client");
+                }
+                _ => {
+                    // Handle other error codes here
+                }
+            }
+        }
+    }
+
+    println!("Created");
+    Ok(())
+}
+
+fn print_value(item: &MonitoredItem) {
+   let node_id = &item.item_to_monitor().node_id;
+   let data_value = item.last_value();
+   if let Some(ref value) = data_value.value {
+       println!("Item \"{}\", Value = {:?}", node_id, value);
+   } else {
+       println!("Item \"{}\", Value not found, error: {}", node_id, data_value.status.as_ref().unwrap());
+   }
+}
