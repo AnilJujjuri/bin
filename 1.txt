@@ -1,4 +1,11 @@
+Client created
 Traceback (most recent call last):
-  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 2, in <module>
-    from opcua.ua import NodeId, AttributeId, DataValue, Variant
-ImportError: cannot import name 'AttributeId' from 'opcua.ua' (C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\__init__.py)
+  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 43, in <module>
+    main()
+  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 20, in main
+    node.set_attribute(AttributeIds.Value, data_value)
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\common\node.py", line 263, in set_attribute
+    result[0].check()
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\uatypes.py", line 218, in check
+    raise UaStatusCodeError(self.value)
+opcua.ua.uaerrors._auto.BadNotWritable: "The access level does not allow writing to the Node."(BadNotWritable)
