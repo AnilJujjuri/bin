@@ -1,17 +1,44 @@
-Client created
- Session created
- Value written successfully
- Created
- Subscribed
- Data change from server:
- Item "ns=3;i=1003", Value = Double(-0.941271)
- Data change from server:
- Item "ns=3;i=1003", Value = Double(-1.6156)
- Data change from server:
- Item "ns=3;i=1003", Value = Double(1.648361)
- Data change from server:
- Item "ns=3;i=1003", Value = Double(0.9775755)
- Data change from server:
- Item "ns=3;i=1003", Value = Double(-0.85761)
- Data change from server:
- Item "ns=3;i=1003", Value = Double(-1.614)
+from opcua import Client
+
+def main():
+    client = Client("opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer")
+    client.set_security_string("None")
+
+    print("Client created")
+
+    client.connect()
+    print("Session created")
+
+    subscription = client.create_subscription(2000, None, None, 10)
+    print("Subscription created")
+
+    def data_change_notification(node, val, data):
+        print("Data change from server:")
+        print(f"Item \"{node}\" Value = {val}")
+
+    items_to_monitor = [
+        "ns=3;i=1003",
+        "ns=3;i=1008",
+        "ns=3;i=1009",
+        "ns=3;i=1010"
+    ]
+    monitored_items = subscription.subscribe_data_change(items_to_monitor, data_change_notification)
+    print("Monitored items created")
+
+    node_to_write = "ns=3;i=1012"
+    client.get_node(node_to_write).set_value(20)
+    print("Value written successfully")
+
+    print("Subscribed")
+
+    # Keep the client running to receive data change notifications
+    try:
+        while True:
+            pass
+    except KeyboardInterrupt:
+        pass
+
+    client.disconnect()
+
+if __name__ == "__main__":
+    main()
