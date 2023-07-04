@@ -1,16 +1,50 @@
-Client created
-Session created
-Subscription created
-Traceback (most recent call last):
-  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 46, in <module>
+from opcua import Client
+from opcua import ua
+
+def main():
+    client = Client("opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer")
+
+    print("Client created")
+
+    client.connect()
+    print("Session created")
+
+    subscription = client.create_subscription(2000, None)
+    print("Subscription created")
+
+    def data_change_notification(sub, mon, data):
+        print("Data change from server:")
+        for val in data.MonitoredItems:
+            print(f"Node: {val.NodeId}")
+            print(f"Value: {val.Value.Value}")
+
+    items_to_monitor = [
+        ("ns=3;i=1003", ua.ObjectIds.BaseDataVariableType),
+        ("ns=3;i=1008", ua.ObjectIds.BaseDataVariableType),
+        ("ns=3;i=1009", ua.ObjectIds.BaseDataVariableType),
+        ("ns=3;i=1010", ua.ObjectIds.BaseDataVariableType)
+    ]
+    monitored_items = []
+    for node_id, attr_id in items_to_monitor:
+        node = client.get_node(node_id)
+        handle = subscription.subscribe_data_change(node, attr_id, data_change_notification)
+        monitored_items.append(handle)
+    print("Monitored items created")
+
+    node_to_write = client.get_node("ns=3;i=1012")
+    node_to_write.set_value(ua.Variant(20, ua.VariantType.Int16))
+    print("Value written successfully")
+
+    print("Subscribed")
+
+    # Keep the client running to receive data change notifications
+    try:
+        while True:
+            pass
+    except KeyboardInterrupt:
+        pass
+
+    client.disconnect()
+
+if __name__ == "__main__":
     main()
-  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 27, in main
-    monitored_items = subscription.subscribe_data_change(items_to_monitor, data_change_notification)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\common\subscription.py", line 197, in subscribe_data_change
-    return self._subscribe(nodes, attr, queuesize=queuesize)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\common\subscription.py", line 227, in _subscribe
-    mir = self._make_monitored_item_request(node, attr, mfilter, queuesize)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\common\subscription.py", line 239, in _make_monitored_item_request
-    rv.NodeId = node.nodeid
-AttributeError: 'tuple' object has no attribute 'nodeid'
-NotificationMessage is None.
