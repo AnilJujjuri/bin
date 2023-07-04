@@ -1,46 +1,45 @@
-from opcua import Client, ua
-from opcua.common.subscription import Subscription
-
-class DataChangeHandler:
-    def __init__(self):
-        pass
-
-    def datachange_notification(self, node, val, data):
-        print("Data change from server:")
-        print(f"Node: {node}")
-        print(f"Value: {val}")
+from opcua import Client
 
 def main():
     client = Client("opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer")
-    client.application_name = "Python-OPCUA-Client"
     client.set_security_string("None")
-    client.session_timeout = 60000
 
     print("Client created")
 
     client.connect()
     print("Session created")
 
-    subscription = Subscription(client, 2000, DataChangeHandler())
-    subscription.create_subscription(10, 30)
+    subscription = client.create_subscription(2000, None, None, 10)
     print("Subscription created")
 
-    items_to_create = [ua.NodeId(3, v) for v in [1003, 1008, 1009, 1010]]
-    monitored_items = subscription.create_monitored_items(items_to_create)
+    def data_change_notification(node, val, data):
+        print("Data change from server:")
+        print(f"Node: {node}")
+        print(f"Value: {val}")
+
+    items_to_monitor = [
+        client.get_node("ns=3;i=1003"),
+        client.get_node("ns=3;i=1008"),
+        client.get_node("ns=3;i=1009"),
+        client.get_node("ns=3;i=1010")
+    ]
+    monitored_items = subscription.subscribe_data_change(items_to_monitor, data_change_notification)
     print("Monitored items created")
 
-    write_value = ua.WriteValue()
-    write_value.node_id = ua.NodeId(3, 1012)
-    write_value.value = ua.DataValue(20)
-    write_value.attribute_id = ua.AttributeIds.Value
-    write_value.index_range = None
-
-    client.uaclient.write([write_value])
+    node_to_write = client.get_node("ns=3;i=1012")
+    node_to_write.set_value(20)
     print("Value written successfully")
 
     print("Subscribed")
+
+    # Keep the client running to receive data change notifications
+    try:
+        while True:
+            pass
+    except KeyboardInterrupt:
+        pass
+
     client.disconnect()
 
 if __name__ == "__main__":
     main()
-a
