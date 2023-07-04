@@ -1,57 +1,22 @@
+# OPC UA is a communication protocol used by SCADA systems to enable an exchange of data between devices
+import sys
+import opcua
+sys.path.insert(0,"..")
 from opcua import Client
-from opcua.ua import ua
+import time
 
+#endpoint 
+url = "opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer"
 
-def main():
-    client = Client("opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer")
-    client.set_security_string("None")
-
-    print("Client created")
-
+try:
+    client = Client(url)
     client.connect()
-    print("Session created")
+    print("Connected to opcua server")
+except Exception as err:
+    print("err",err)
+    sys.exit(1)
 
-    subscription = client.create_subscription(2000, None, None, 10)
-    print("Subscription created")
-
-    def data_change_notification(sub, resp):
-        for val in resp.NotificationMessage:
-            for mon_item in val.MonitoredItems:
-                node_id = mon_item.ClientHandle
-                value = mon_item.Value.Value
-                print(f"Node: {node_id}")
-                print(f"Value: {value}")
-
-    items_to_monitor = [
-        ("ns=3;i=1003", ua.AttributeIds.Value),
-        ("ns=3;i=1008", ua.AttributeIds.Value),
-        ("ns=3;i=1009", ua.AttributeIds.Value),
-        ("ns=3;i=1010", ua.AttributeIds.Value)
-    ]
-
-    monitored_items = []
-    for node_id, attr_id in items_to_monitor:
-        node = client.get_node(node_id)
-        handle = subscription.subscribe_data_change(node, attr_id, data_change_notification)
-        monitored_items.append(handle)
-
-    print("Monitored items created")
-
-    node_to_write = client.get_node("ns=3;i=1012")
-    node_to_write.set_value(20)
-    print("Value written successfully")
-
-    print("Subscribed")
-
-    # Keep the client running to receive data change notifications
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        pass
-
-    client.disconnect()
-
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    rand_num_node = client.get_node("ns=3;i=1003")
+    random_num_value = rand_num_node.get_value()
+    print(" Random Value is :",random_num_value)
