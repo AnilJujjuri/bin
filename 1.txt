@@ -8,7 +8,24 @@ def send_can_message(bus, can_id, data):
     bus.send(message)
 
 
-def convert_telemetry_to_candump(telemetry_data):
+def convert_telemetry_to_candump(telemetry_data):Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
+Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
+Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
+Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
+Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
+Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
+Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
+Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
+Exception caught in background thread.  Unable to handle.
     candump = ""
     can_data = []
 
