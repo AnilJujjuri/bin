@@ -1,33 +1,34 @@
 from opcua import Client
+from opcua import ua
 
 def main():
     client = Client("opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer")
-    client.set_security_string(None)
 
     print("Client created")
 
     client.connect()
     print("Session created")
 
-    subscription = client.create_subscription(2000, 10)
+    subscription = client.create_subscription(2000, None)
     print("Subscription created")
 
-    def data_change_notification(node, val, data):
+    def data_change_notification(sub, mon, data):
         print("Data change from server:")
-        print(f"Node: {node}")
-        print(f"Value: {val}")
+        for val in data.MonitoredItems:
+            print(f"Node: {val.NodeId}")
+            print(f"Value: {val.Value.Value}")
 
     items_to_monitor = [
-        client.get_node("ns=3;i=1003"),
-        client.get_node("ns=3;i=1008"),
-        client.get_node("ns=3;i=1009"),
-        client.get_node("ns=3;i=1010")
+        ("ns=3;i=1003", ua.ObjectIds.BaseDataVariableType),
+        ("ns=3;i=1008", ua.ObjectIds.BaseDataVariableType),
+        ("ns=3;i=1009", ua.ObjectIds.BaseDataVariableType),
+        ("ns=3;i=1010", ua.ObjectIds.BaseDataVariableType)
     ]
     monitored_items = subscription.subscribe_data_change(items_to_monitor, data_change_notification)
     print("Monitored items created")
 
     node_to_write = client.get_node("ns=3;i=1012")
-    node_to_write.set_value(20)
+    node_to_write.set_value(ua.Variant(20, ua.VariantType.Int16))
     print("Value written successfully")
 
     print("Subscribed")
@@ -43,50 +44,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-Client created
-Session created
-Subscription created
-Traceback (most recent call last):
-  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 45, in <module>
-    main()
-  File "d:\OneDrive - LTTS\Desktop\waste\main.py", line 26, in main
-    monitored_items = subscription.subscribe_data_change(items_to_monitor, data_change_notification)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\common\subscription.py", line 197, in subscribe_data_change
-    return self._subscribe(nodes, attr, queuesize=queuesize)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\common\subscription.py", line 230, in _subscribe
-    mids = self.create_monitored_items(mirs)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\common\subscription.py", line 278, in create_monitored_items
-    results = self.server.create_monitored_items(params)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\client\ua_client.py", line 543, in create_monitored_items
-    data = self._uasocket.send_request(request)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\client\ua_client.py", line 81, in send_request
-    future = self._send_request(request, callback, timeout, message_type)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\client\ua_client.py", line 55, in _send_request
-    binreq = struct_to_binary(request)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 261, in struct_to_binary
-    packet.append(to_binary(uatype, val))
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 284, in to_binary
-    return struct_to_binary(val)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 256, in struct_to_binary
-    packet.append(list_to_binary(uatype[6:], val))
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 296, in list_to_binary
-    pack = [to_binary(uatype, el) for el in val]
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 296, in <listcomp>
-    pack = [to_binary(uatype, el) for el in val]
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 284, in to_binary
-    return struct_to_binary(val)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 261, in struct_to_binary
-    packet.append(to_binary(uatype, val))
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 284, in to_binary
-    return struct_to_binary(val)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 261, in struct_to_binary
-    packet.append(to_binary(uatype, val))
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 274, in to_binary
-    return pack_uatype(vtype, val)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 184, in pack_uatype
-    return getattr(Primitives, vtype.name).pack(value)
-  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\opcua\ua\ua_binary.py", line 135, in pack
-    return struct.pack(self.format, data)
-struct.error: required argument is not an integer
-NotificationMessage is None.
