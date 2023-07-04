@@ -1,22 +1,17 @@
-# OPC UA is a communication protocol used by SCADA systems to enable an exchange of data between devices
-import sys
-import opcua
-sys.path.insert(0,"..")
-from opcua import Client
-import time
-
-#endpoint 
-url = "opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer"
-
-try:
-    client = Client(url)
-    client.connect()
-    print("Connected to opcua server")
-except Exception as err:
-    print("err",err)
-    sys.exit(1)
-
-if __name__ == '__main__':
-    rand_num_node = client.get_node("ns=3;i=1003")
-    random_num_value = rand_num_node.get_value()
-    print(" Random Value is :",random_num_value)
+Client created
+ Session created
+ Value written successfully
+ Created
+ Subscribed
+ Data change from server:
+ Item "ns=3;i=1003", Value = Double(-0.941271)
+ Data change from server:
+ Item "ns=3;i=1003", Value = Double(-1.6156)
+ Data change from server:
+ Item "ns=3;i=1003", Value = Double(1.648361)
+ Data change from server:
+ Item "ns=3;i=1003", Value = Double(0.9775755)
+ Data change from server:
+ Item "ns=3;i=1003", Value = Double(-0.85761)
+ Data change from server:
+ Item "ns=3;i=1003", Value = Double(-1.614)
