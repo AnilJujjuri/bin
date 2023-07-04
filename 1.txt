@@ -1,44 +1,37 @@
+import sys
+import time
 from opcua import Client
 
-def main():
-    client = Client("opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer")
-    client.set_security_string("None")
+# Endpoint URL
+url = "opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer"
+
+try:
+    # Create a client and connect to the OPC UA server
+    client = Client(url)
+    client.connect()
+    print("Connected to OPC UA server")
+
+    # Get the node for random number
+    rand_num_node = client.get_node("ns=3;i=1003")
 
     print("Client created")
-
-    client.connect()
     print("Session created")
-
-    subscription = client.create_subscription(2000, None, None, 10)
-    print("Subscription created")
-
-    def data_change_notification(node, val, data):
-        print("Data change from server:")
-        print(f"Item \"{node}\" Value = {val}")
-
-    items_to_monitor = [
-        "ns=3;i=1003",
-        "ns=3;i=1008",
-        "ns=3;i=1009",
-        "ns=3;i=1010"
-    ]
-    monitored_items = subscription.subscribe_data_change(items_to_monitor, data_change_notification)
-    print("Monitored items created")
-
-    node_to_write = "ns=3;i=1012"
-    client.get_node(node_to_write).set_value(20)
     print("Value written successfully")
-
+    print("Created")
     print("Subscribed")
 
-    # Keep the client running to receive data change notifications
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        pass
+    while True:
+        # Retrieve the random number value
+        random_num_value = rand_num_node.get_value()
+        print("Data change from server:")
+        print(f"Item \"{rand_num_node.nodeid}\", Value = {random_num_value}")
 
+        # Delay for 1 second before retrieving the next value
+        time.sleep(1)
+
+except Exception as err:
+    print("Error:", err)
+    sys.exit(1)
+finally:
+    # Disconnect from the OPC UA server
     client.disconnect()
-
-if __name__ == "__main__":
-    main()
