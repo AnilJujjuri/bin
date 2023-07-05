@@ -1,15 +1,16 @@
 from azure.iot.device import IoTHubDeviceClient
 import can
 import time
+
 def send_can_message(bus, can_id, data):
     message = can.Message(arbitration_id=can_id, data=data)
     bus.send(message)
 
-def convert_telemetry_to_candump(sensor_id, telemetry_data):
-    candump = f"{sensor_id}_"
+def convert_telemetry_to_candump(telemetry_data):
+    candump = ""
     can_data = []
 
-    for key, value in telemetry_data.items():
+    for value in telemetry_data.values():
         if isinstance(value, int):
             byte_value = value % 256
         elif isinstance(value, float):
@@ -21,19 +22,19 @@ def convert_telemetry_to_candump(sensor_id, telemetry_data):
                 try:
                     byte_value = int(float(value)) % 256
                 except ValueError:
-                    continue  # Skip this key-value pair if conversion is not possible
+                    continue  # Skip this value if conversion is not possible
         else:
             continue  # Skip unsupported data types
 
         can_data.append(byte_value)
-        candump += f"{key}_{byte_value}_"
+        candump += f"{byte_value}_"
 
     return candump.rstrip("_"), can_data
 
 class CanController:
-    def __init__(self,bus):
+    def __init__(self, bus):
         self.last_messages = {}
-        self.bus=bus
+        self.bus = bus
 
     def send_can_message(self, can_id, can_data):
         message_key = f"{can_id}_{can_data}"
@@ -42,21 +43,20 @@ class CanController:
             send_can_message(self.bus, can_id, can_data)
 
 def handle_device_twin_update(twin, can_controller):
-    reported_properties = twin["reported"]
+    reported_properties = twin.get("reported", {})
+    can_id = twin.get("can_id", 123)  # Default CAN ID if not specified in properties
 
-    for sensor_id, telemetry_data in reported_properties.items():
-        if isinstance(telemetry_data, dict):
-            can_id_parts = sensor_id.split("_")
-            if len(can_id_parts) >= 2 and can_id_parts[1].isnumeric():
-                can_id = int(can_id_parts[1])
-                candump, can_data = convert_telemetry_to_candump(sensor_id, telemetry_data)
+    if not reported_properties:  # Skip if reported properties is empty
+        return
 
-                can_controller.send_can_message(can_id, can_data)
+    candump, can_data = convert_telemetry_to_candump(reported_properties)
+    if candump is not None and can_data is not None:
+        can_controller.send_can_message(can_id, can_data)
 
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
-    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
+    device_connection_string = "YOUR_DEVICE_CONNECTION_STRING"
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
     client.connect()
@@ -68,7 +68,7 @@ def main():
             handle_device_twin_update(twin, can_controller)
             # Retry mechanism
             if retry_counter < 3:
-                time.sleep(20)  # Wait for 10 seconds between retries
+                time.sleep(20)  # Wait for 20 seconds between retries
                 retry_counter += 1
             else:
                 break  # Disconnect after the maximum number of retries
@@ -80,3 +80,29 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+from azure.iot.device import IoTHubDeviceClient
+
+device_connection_string = "YOUR_DEVICE_CONNECTION_STRING"
+client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+
+client.connect()
+
+# Sample telemetry data
+telemetry_data = {
+    "temperature": 25.5,
+    "humidity": 50.2,
+    "pressure": 1013.25,
+    "can_id": 456  # Desired CAN ID
+}
+
+# Prepare the message payload
+message = {
+    "properties": telemetry_data
+}
+
+# Send the message to the device twin
+client.patch_twin_reported_properties(message)
+
+client.disconnect()
