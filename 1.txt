@@ -8,4 +8,16 @@ device_client = IoTHubDeviceClient.create_from_connection_string(device_connecti
 device_client.patch_twin_reported_properties({})
 device_client.patch_twin_desired_properties({})
 
-print("Device twin data deleted successfully.")
+# Get the updated twin properties
+twin = device_client.get_twin()
+desired_properties = twin["desired"]
+reported_properties = twin["reported"]
+
+# Print the updated twin properties
+print("Desired Properties:")
+for key, value in desired_properties.items():
+    print(key + ": " + str(value))
+
+print("\nReported Properties:")
+for key, value in reported_properties.items():
+    print(key + ": " + str(value))
