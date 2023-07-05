@@ -1,43 +1,24 @@
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: Client is not connected to IoTHub
-Exception caught: Client is not connected to IoTHub
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
-Exception caught: unsupported operand type(s) for |=: 'str' and 'int'
+def convert_telemetry_to_candump(can_id, telemetry_data):
+    candump = f"{can_id}_"
+    can_data = []
+
+    for key, value in telemetry_data.items():
+        if isinstance(value, int):
+            byte_value = value % 256
+        elif isinstance(value, float):
+            byte_value = int(value) % 256
+        elif isinstance(value, str):
+            try:
+                byte_value = int(value) % 256
+            except ValueError:
+                try:
+                    byte_value = int(float(value)) % 256
+                except ValueError:
+                    continue  # Skip this key-value pair if conversion is not possible
+        else:
+            continue  # Skip unsupported data types
+
+        can_data.append(byte_value)
+        candump += f"{key}_{byte_value}_"
+
+    return candump.rstrip("_"), can_data
