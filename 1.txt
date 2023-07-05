@@ -1,20 +1,38 @@
-from azure.iot.device import IoTHubDeviceClient
-
-# Initialize the IoT Hub device client
-device_connection_string = "<your device connection string>"
-device_client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
-
-# Get the current twin properties
-twin = device_client.get_twin()
-desired_properties = twin["desired"]
-reported_properties = twin["reported"]
-
-# Print desired properties
-print("Desired Properties:")
-for key, value in desired_properties.items():
-    print(f"{key}: {value}")
-
-# Print reported properties
-print("Reported Properties:")
-for key, value in reported_properties.items():
-    print(f"{key}: {value}")
+Reported Properties:
+sensor_1234: {'vibration': 'high', 'temperature': 25.5, 'humidity': 60.0}
+sensor_1235: {'vibration': 3, 'temperature': 25, 'humidity': 40}
+sensor_125: {'vibration': 6, 'temperature': 28, 'humidity': 60}
+sensor_126: {'vibration': 6, 'temperature': 28, 'humidity': 60}
+sensor_127: {'vibration': 6, 'temperature': 28, 'humidity': 60}
+sensor_130: {'vibration': 5, 'temperature': 28.0, 'humidity': 60.0}
+sensor: sensor_136
+temperature: 30.0
+humidity: 86.0
+sensor_id: sensor112
+sensor_131: {'vibration': 'false', 'temperature': 28.0, 'humidity': 60.0}
+sensor_135: {'vibration': 'false', 'temperature': 28.0, 'humidity': 60.0}
+sensor_139: {'vibration': 4, 'temperature': 28.0, 'humidity': 60.0}
+sensor_140: {'vibration': 4, 'temperature': 29.0, 'humidity': 62.0}
+sensor_145: {'vibration': 4, 'temperature': 33.0, 'humidity': 70.0}
+sensor_147: {'vibration': 4, 'temperature': 33, 'humidity': 70}
+sensor_148: {'vibration': 4.0, 'temperature': 33.0, 'humidity': 70.0}
+sensor_149: {'vibration': 4.0, 'temperature': 35.0, 'humidity': 70.0}
+sensor_146: {'vibration': 4.0, 'temperature': 35.0, 'humidity': 70.0}
+sensor_151: {'vibration': 7.0, 'temperature': 35.0, 'humidity': 70.0}
+sensor_152: {'vibration': 5.0, 'temperature': 35.0, 'humidity': 70.0}
+sensor_153: {'vibration': 7.0, 'temperature': 35.0, 'humidity': 70.0, 'moisture': 4.9}
+sensor_154: {'vibration': 7.0, 'temperature': 35.0, 'humidity': 70.0, 'moisture': 4.9}
+sensor_155: {'vibration': 9.0, 'temperature': 38.0, 'humidity': 76.0, 'moisture': 4.9}
+sensor_156: {'vibration': 10.0, 'temperature': 39.0, 'humidity': 78.0, 'moisture': 5.9}
+sensor_199: {'vibration': 2.0, 'temperature': 32.0, 'humidity': 81.0, 'moisture': 6.9}
+sensor_197: {'vibration': 3.0, 'temperature': 31.0, 'humidity': 81.0, 'moisture': 6.9}
+sensor_193: {'vibration': 4.0, 'temperature': 31.0, 'humidity': 81.0, 'moisture': 6.9}
+sensor_251: {'vibration': 5.0, 'temperature': 31.0, 'humidity': 81.0, 'moisture': 6.9}
+: {'vibration': 5.0, 'temperature': 31.0, 'humidity': 81.0, 'moisture': 7.9}
+100: {'vibration': 8.0, 'temperature': 32.0, 'humidity': 87.0, 'moisture': 7.9}
+110: {'vibration': 6.0, 'temperature': 31.0, 'humidity': 81.0, 'moisture': 7.9}
+reported: {'100': {'vibration': 8.0, 'temperature': 32.0, 'humidity': 87.0, 'moisture': 7.9, 'can_device_id': 100}, '10': {'vibration': 9.0, 'temperature': 32.0, 'humidity': 87.0, 'moisture': 7.9}, '1300': {'vibration': 9.0, 'temperature': 32.0, 'humidity': 87.0, 'moisture': 7.9}, 'can_device_id': '187', 'vibration': 2.0, 'temperature': 32.0, 'humidity': 87.0, 'moisture': 7.9}
+101: {'vibration': 6.0, 'temperature': 32.0, 'humidity': 87.0, 'moisture': 7.9}
+can_device_id: 134
+vibration: 5.0
+moisture: 9.9
