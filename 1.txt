@@ -1,8 +1,9 @@
-Exception caught: local variable 'can_id' referenced before assignment
-Exception caught: local variable 'can_id' referenced before assignment
+Exception caught: 'int' object has no attribute 'isdigit'
+Exception caught: 'int' object has no attribute 'isdigit'
+Exception caught: 'int' object has no attribute 'isdigit'
 Exception caught in background thread.  Unable to handle.
 ['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: local variable 'can_id' referenced before assignment
-Exception caught: local variable 'can_id' referenced before assignment
-Exception caught: local variable 'can_id' referenced before assignment
+Exception caught: 'int' object has no attribute 'isdigit'
+Exception caught: 'int' object has no attribute 'isdigit'
+Exception caught: 'int' object has no attribute 'isdigit'
 Exception caught in background thread.  Unable to handle.
