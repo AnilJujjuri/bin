@@ -1,28 +1,17 @@
 from azure.iot.device import IoTHubDeviceClient
 import can
 import time
+import os
 
 def send_can_message(bus, can_id, data):
     message = can.Message(arbitration_id=can_id, data=data)
     bus.send(message)
 
-class CanController:
-    def __init__(self, bus):
-        self.bus = bus
-
-    def send_can_message(self, can_id, can_data):
-        send_can_message(self.bus, can_id, can_data)
-
-def handle_device_twin_update(twin, can_controller):
-    reported_properties = twin.get("reported", {})
-
-    can_id = reported_properties.get("can_id", 123)  # Default CAN ID if not specified
+def convert_telemetry_to_candump(telemetry_data):
+    candump = ""
     can_data = []
 
-    for key, value in reported_properties.items():
-        if key == "can_id":
-            continue  # Skip the can_id property
-
+    for key, value in telemetry_data.items():
         if isinstance(value, int):
             byte_value = value % 256
         elif isinstance(value, float):
@@ -39,36 +28,51 @@ def handle_device_twin_update(twin, can_controller):
             continue  # Skip unsupported data types
 
         can_data.append(byte_value)
+        candump += f"{key}_{byte_value}_"
 
-    if can_data:
-        can_controller.send_can_message(can_id, can_data)
+    return candump.rstrip("_"), can_data
 
-    return can_data  # Return the processed CAN data
+class CanController:
+    def __init__(self, bus):
+        self.last_messages = {}
+        self.bus = bus
+
+    def send_can_message(self, can_id, can_data):
+        message_key = f"{can_id}_{can_data}"
+        if message_key not in self.last_messages:
+            self.last_messages[message_key] = True
+            send_can_message(self.bus, can_id, can_data)
+
+def handle_device_twin_update(twin, can_controller):
+    reported_properties = twin.get("reported", {})
+    can_device_id = twin.get("can_device_id", "")
+
+    if not reported_properties:  # Skip if reported properties is empty
+        return
+
+    for can_device_id, telemetry_data in reported_properties.items():
+        if isinstance(telemetry_data, dict):
+            candump, can_data = convert_telemetry_to_candump(telemetry_data)
+            if candump is not None and can_data is not None:
+                can_id = int(can_device_id) if can_device_id.isdigit() else 1001
+                can_controller.send_can_message(can_id, can_data)
 
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
-    device_connection_string = "YOUR_DEVICE_CONNECTION_STRING"
+    device_connection_string = os.getenv("DEVICE_CONNECTION_STRING")  # Read from environment variable
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
     client.connect()
-    can_controller = CanController(bus)
-
     retry_counter = 0
-    max_retries = 3
-
-    last_can_data = None  # Variable to store the last processed CAN data
-
+    can_controller = CanController(bus)
     while True:
         try:
             twin = client.get_twin()
-            can_data = handle_device_twin_update(twin, can_controller)
-
-            if can_data:
-                last_can_data = can_data  # Update the last processed CAN data
-
-            if retry_counter < max_retries:
-                time.sleep(10)  # Wait for 10 seconds between retries
+            handle_device_twin_update(twin, can_controller)
+            # Retry mechanism
+            if retry_counter < 3:
+                time.sleep(20)  # Wait for 20 seconds between retries
                 retry_counter += 1
             else:
                 break  # Disconnect after the maximum number of retries
@@ -77,10 +81,6 @@ def main():
             continue
 
     client.disconnect()
-
-    # Process the last received message (last_can_data) here
-    if last_can_data:
-        print("Last received message:", last_can_data)
 
 if __name__ == '__main__':
     main()
