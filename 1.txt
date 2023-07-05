@@ -1,24 +1,23 @@
-Received CAN message:Timestamp: 1688536473.858524    ID: 000003e9    X Tx                DL:  4    06 20 57 07                 Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725531    ID: 000003e9    X Tx                DL:  2    19 3c                       Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725567    ID: 000003e9    X Tx                DL:  3    03 19 28                    Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725587    ID: 000003e9    X Tx                DL:  3    06 1c 3c                    Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725613    ID: 000003e9    X Tx                DL:  3    05 1c 3c                    Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725640    ID: 000003e9    X Tx                DL:  2    1c 3c                       Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725669    ID: 000003e9    X Tx                DL:  3    04 1c 3c                    Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725688    ID: 000003e9    X Tx                DL:  3    04 1d 3e                    Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725726    ID: 000003e9    X Tx                DL:  3    04 21 46                    Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725758    ID: 000003e9    X Tx                DL:  3    04 23 46                    Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725794    ID: 000003e9    X Tx                DL:  3    07 23 46                    Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725824    ID: 000003e9    X Tx                DL:  3    05 23 46                    Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725850    ID: 000003e9    X Tx                DL:  4    07 23 46 04                 Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725883    ID: 000003e9    X Tx                DL:  4    09 26 4c 04                 Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725907    ID: 000003e9    X Tx                DL:  4    0a 27 4e 05                 Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725933    ID: 000003e9    X Tx                DL:  4    02 20 51 06                 Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725957    ID: 000003e9    X Tx                DL:  4    03 1f 51 06                 Channel: vcan0
-Received CAN message:Timestamp: 1688539390.725981    ID: 000003e9    X Tx                DL:  4    04 1f 51 06                 Channel: vcan0
-Received CAN message:Timestamp: 1688539390.726004    ID: 000003e9    X Tx                DL:  4    05 1f 51 06                 Channel: vcan0
-Received CAN message:Timestamp: 1688539390.726028    ID: 000003e9    X Tx                DL:  4    05 1f 51 07                 Channel: vcan0
-Received CAN message:Timestamp: 1688539390.726060    ID: 000003e9    X Tx                DL:  4    08 20 57 07                 Channel: vcan0
-Received CAN message:Timestamp: 1688539390.726085    ID: 000003e9    X Tx                DL:  4    06 1f 51 07                 Channel: vcan0
-Received CAN message:Timestamp: 1688539390.726116    ID: 000003e9    X Tx                DL:  5    bb 02 20 57 07              Channel: vcan0
-Received CAN message:Timestamp: 1688539390.726140    ID: 000003e9    X Tx                DL:  4    06 20 57 07                 Channel: vcan0
+from azure.iot.device import IoTHubDeviceClient
+
+# Define the connection string for the device
+device_connection_string = "HostName=<your-iot-hub>.azure-devices.net;DeviceId=<your-device-id>;SharedAccessKey=<your-device-access-key>"
+
+# Create an instance of the IoT Hub Device Client
+client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+
+# Connect to the IoT Hub
+client.connect()
+
+# Define the sample telemetry data
+telemetry_data = {
+    "temperature": 25.5,
+    "humidity": 60,
+    "pressure": 1013.25
+}
+
+# Send the telemetry data to the device twin
+client.patch_twin_reported_properties(telemetry_data)
+
+# Disconnect from the IoT Hub
+client.disconnect()
