@@ -1,137 +1,24 @@
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: Client is not connected to IoTHub
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
-['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
+from azure.iot.device import IoTHubDeviceClient
+
+# Initialize the IoT Hub device client
+device_connection_string = "<your device connection string>"
+device_client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+
+# Get the current twin properties
+twin = device_client.get_twin()
+desired_properties = twin["desired"]
+reported_properties = twin["reported"]
+
+# Remove desired properties starting with "sensor_"
+desired_properties_to_remove = [key for key in desired_properties if key.startswith("sensor_")]
+for key in desired_properties_to_remove:
+    desired_properties.pop(key)
+
+# Remove reported properties starting with "sensor_"
+reported_properties_to_remove = [key for key in reported_properties if key.startswith("sensor_")]
+for key in reported_properties_to_remove:
+    reported_properties.pop(key)
+
+# Update the twin with the modified properties
+device_client.patch_twin_reported_properties(reported_properties)
+device_client.patch_twin_desired_properties(desired_properties)
