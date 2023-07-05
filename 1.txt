@@ -43,6 +43,8 @@ def handle_device_twin_update(twin, can_controller):
     if can_data:
         can_controller.send_can_message(can_id, can_data)
 
+    return can_data  # Return the processed CAN data
+
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
@@ -55,10 +57,15 @@ def main():
     retry_counter = 0
     max_retries = 3
 
+    last_can_data = None  # Variable to store the last processed CAN data
+
     while True:
         try:
             twin = client.get_twin()
-            handle_device_twin_update(twin, can_controller)
+            can_data = handle_device_twin_update(twin, can_controller)
+
+            if can_data:
+                last_can_data = can_data  # Update the last processed CAN data
 
             if retry_counter < max_retries:
                 time.sleep(10)  # Wait for 10 seconds between retries
@@ -70,6 +77,10 @@ def main():
             continue
 
     client.disconnect()
+
+    # Process the last received message (last_can_data) here
+    if last_can_data:
+        print("Last received message:", last_can_data)
 
 if __name__ == '__main__':
     main()
