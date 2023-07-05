@@ -1,24 +1,19 @@
-from azure.iot.device import IoTHubDeviceClient
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/iothub/sync_clients.py", line 33, in handle_result
+    return callback.wait_for_completion()
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/common/evented_callback.py", line 69, in wait_for_completion
+    raise self.exception
+azure.iot.device.exceptions.ServiceError: twin operation returned status 400
 
-# Initialize the IoT Hub device client
-device_connection_string = "<your device connection string>"
-device_client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+The above exception was the direct cause of the following exception:
 
-# Get the current twin properties
-twin = device_client.get_twin()
-desired_properties = twin["desired"]
-reported_properties = twin["reported"]
-
-# Remove desired properties starting with "sensor_"
-desired_properties_to_remove = [key for key in desired_properties if key.startswith("sensor_")]
-for key in desired_properties_to_remove:
-    desired_properties.pop(key)
-
-# Remove reported properties starting with "sensor_"
-reported_properties_to_remove = [key for key in reported_properties if key.startswith("sensor_")]
-for key in reported_properties_to_remove:
-    reported_properties.pop(key)
-
-# Update the twin with the modified properties
-device_client.patch_twin_reported_properties(reported_properties)
-device_client.patch_twin_desired_properties(desired_properties)
+Traceback (most recent call last):
+  File "/home/Machine1/can_connector/can_connector/tests/del.py", line 19, in <module>
+    device_client.patch_twin_reported_properties(reported_properties)
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/patch_documentation.py", line 32, in patch_twin_reported_properties
+    return super(IoTHubDeviceClient, self).patch_twin_reported_properties(
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/iothub/sync_clients.py", line 482, in patch_twin_reported_properties
+    handle_result(callback)
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/iothub/sync_clients.py", line 57, in handle_result
+    raise exceptions.ClientError("Unexpected failure") from e
+azure.iot.device.exceptions.ClientError: Unexpected failure
