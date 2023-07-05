@@ -52,11 +52,19 @@ def main():
     client.connect()
     can_controller = CanController(bus)
 
+    retry_counter = 0
+    max_retries = 3
+
     while True:
         try:
             twin = client.get_twin()
             handle_device_twin_update(twin, can_controller)
-            time.sleep(1)  # Wait for 1 second before checking for updates again
+
+            if retry_counter < max_retries:
+                time.sleep(10)  # Wait for 10 seconds between retries
+                retry_counter += 1
+            else:
+                break  # Disconnect after the maximum number of retries
         except Exception as e:
             print("Exception caught:", str(e))
             continue
