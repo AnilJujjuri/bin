@@ -1,93 +1,668 @@
-from azure.iot.device import IoTHubDeviceClient
-import can
-import time
-
-def send_can_message(bus, can_id, data):
-    message = can.Message(arbitration_id=can_id, data=data)
-    bus.send(message)
-
-def convert_telemetry_to_candump(telemetry_data):
-    candump = ""
-    can_data = []
-
-    for key, value in telemetry_data.items():
-        if isinstance(value, int):
-            byte_value = value % 256
-        elif isinstance(value, float):
-            byte_value = int(value) % 256
-        elif isinstance(value, str):
-            try:
-                byte_value = int(value) % 256
-            except ValueError:
-                try:
-                    byte_value = int(float(value)) % 256
-                except ValueError:
-                    continue  # Skip this key-value pair if conversion is not possible
-        else:
-            continue  # Skip unsupported data types
-
-        can_data.append(byte_value)
-        candump += f"{key}_{byte_value}_"
-
-    return candump.rstrip("_"), can_data
-
-class CanController:
-    def __init__(self, bus):
-        self.last_messages = {}
-        self.bus = bus
-
-    def send_can_message(self, can_id, can_data):
-        message_key = f"{can_id}_{can_data}"
-        if message_key not in self.last_messages:
-            self.last_messages[message_key] = True
-            send_can_message(self.bus, can_id, can_data)
-
-def handle_device_twin_update(twin, can_controller):
-    reported_properties = twin.get("reported", {})
-
-    if not reported_properties:  # Skip if reported properties is empty
-        return
-
-    for can_device_id, telemetry_data in reported_properties.items():
-        if (
-            can_device_id != "can_device_id"
-            and not can_device_id.startswith("sensor_","reported")
-            and isinstance(telemetry_data, dict)
-        ):
-            can_id = int(can_device_id) if can_device_id else 1001
-            candump, can_data = convert_telemetry_to_candump(telemetry_data)
-            if candump is not None and can_data is not None:
-                can_controller.send_can_message(can_id, can_data)
-
-def main():
-    bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
-
-    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
-    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
-
-    client.connect()
-    retry_counter = 0
-    can_controller = CanController(bus)
-    while True:
-        try:
-            twin = client.get_twin()
-            handle_device_twin_update(twin, can_controller)
-            # Retry mechanism
-            if retry_counter < 3:
-                time.sleep(20)  # Wait for 20 seconds between retries
-                retry_counter += 1
-            else:
-                break  # Disconnect after the maximum number of retries
-        except Exception as e:
-            print("Exception caught:", str(e))
-            continue
-
-    client.disconnect()
-
-if __name__ == '__main__':
-    main()
-
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught: slice indices must be integers or None or have an __index__ method
-Exception caught in background thread.  Unable to handle.
+"reported": {
+      "": {
+        "humidity": 81.0,
+        "moisture": 7.9,
+        "temperature": 31.0,
+        "vibration": 5.0
+      },
+      "$metadata": {
+        "": {
+          "$lastUpdated": "2023-07-04T06:38:55.6732706Z",
+          "humidity": {
+            "$lastUpdated": "2023-07-04T06:38:55.6732706Z"
+          },
+          "moisture": {
+            "$lastUpdated": "2023-07-04T06:38:55.6732706Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-07-04T06:38:55.6732706Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-07-04T06:38:55.6732706Z"
+          }
+        },
+        "$lastUpdated": "2023-07-05T02:30:28.6532394Z",
+        "100": {
+          "$lastUpdated": "2023-07-04T11:46:30.0450916Z",
+          "humidity": {
+            "$lastUpdated": "2023-07-04T11:46:30.0450916Z"
+          },
+          "moisture": {
+            "$lastUpdated": "2023-07-04T11:46:30.0450916Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-07-04T11:46:30.0450916Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-07-04T11:46:30.0450916Z"
+          }
+        },
+        "101": {
+          "$lastUpdated": "2023-07-04T20:25:00.9307433Z",
+          "humidity": {
+            "$lastUpdated": "2023-07-04T20:25:00.9307433Z"
+          },
+          "moisture": {
+            "$lastUpdated": "2023-07-04T20:25:00.9307433Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-07-04T20:25:00.9307433Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-07-04T20:25:00.9307433Z"
+          }
+        },
+        "110": {
+          "$lastUpdated": "2023-07-04T08:04:36.7740156Z",
+          "humidity": {
+            "$lastUpdated": "2023-07-04T08:04:36.7740156Z"
+          },
+          "moisture": {
+            "$lastUpdated": "2023-07-04T08:04:36.7740156Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-07-04T08:04:36.7740156Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-07-04T08:04:36.7740156Z"
+          }
+        },
+        "can_device_id": {
+          "$lastUpdated": "2023-07-05T02:28:27.9617471Z"
+        },
+        "humidity": {
+          "$lastUpdated": "2023-07-05T02:30:28.6532394Z"
+        },
+        "moisture": {
+          "$lastUpdated": "2023-07-05T02:30:28.6532394Z"
+        },
+        "reported": {
+          "$lastUpdated": "2023-07-04T20:08:12.1191558Z",
+          "10": {
+            "$lastUpdated": "2023-07-04T12:02:46.8595141Z",
+            "humidity": {
+              "$lastUpdated": "2023-07-04T12:02:46.8595141Z"
+            },
+            "moisture": {
+              "$lastUpdated": "2023-07-04T12:02:46.8595141Z"
+            },
+            "temperature": {
+              "$lastUpdated": "2023-07-04T12:02:46.8595141Z"
+            },
+            "vibration": {
+              "$lastUpdated": "2023-07-04T12:02:46.8595141Z"
+            }
+          },
+          "100": {
+            "$lastUpdated": "2023-07-04T20:01:52.1539628Z",
+            "can_device_id": {
+              "$lastUpdated": "2023-07-04T20:01:52.1539628Z"
+            },
+            "humidity": {
+              "$lastUpdated": "2023-07-04T20:01:52.1539628Z"
+            },
+            "moisture": {
+              "$lastUpdated": "2023-07-04T20:01:52.1539628Z"
+            },
+            "temperature": {
+              "$lastUpdated": "2023-07-04T20:01:52.1539628Z"
+            },
+            "vibration": {
+              "$lastUpdated": "2023-07-04T20:01:52.1539628Z"
+            }
+          },
+          "1300": {
+            "$lastUpdated": "2023-07-04T12:24:15.7196094Z",
+            "humidity": {
+              "$lastUpdated": "2023-07-04T12:24:15.7196094Z"
+            },
+            "moisture": {
+              "$lastUpdated": "2023-07-04T12:24:15.7196094Z"
+            },
+            "temperature": {
+              "$lastUpdated": "2023-07-04T12:24:15.7196094Z"
+            },
+            "vibration": {
+              "$lastUpdated": "2023-07-04T12:24:15.7196094Z"
+            }
+          },
+          "can_device_id": {
+            "$lastUpdated": "2023-07-04T20:08:12.1191558Z"
+          },
+          "humidity": {
+            "$lastUpdated": "2023-07-04T20:08:12.1191558Z"
+          },
+          "moisture": {
+            "$lastUpdated": "2023-07-04T20:08:12.1191558Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-07-04T20:08:12.1191558Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-07-04T20:08:12.1191558Z"
+          }
+        },
+        "sensor": {
+          "$lastUpdated": "2023-06-29T05:41:23.2196266Z"
+        },
+        "sensor_1234": {
+          "$lastUpdated": "2023-06-29T04:30:41.893332Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T04:30:41.893332Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T04:30:41.893332Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T04:30:41.893332Z"
+          }
+        },
+        "sensor_1235": {
+          "$lastUpdated": "2023-06-28T09:39:49.1902429Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-28T09:39:49.1902429Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-28T09:39:49.1902429Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-28T09:39:49.1902429Z"
+          }
+        },
+        "sensor_125": {
+          "$lastUpdated": "2023-06-28T10:34:02.4427324Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-28T10:34:02.4427324Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-28T10:34:02.4427324Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-28T10:34:02.4427324Z"
+          }
+        },
+        "sensor_126": {
+          "$lastUpdated": "2023-06-28T10:35:12.3618748Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-28T10:35:12.3618748Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-28T10:35:12.3618748Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-28T10:35:12.3618748Z"
+          }
+        },
+        "sensor_127": {
+          "$lastUpdated": "2023-06-28T10:37:27.2348761Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-28T10:37:27.2348761Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-28T10:37:27.2348761Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-28T10:37:27.2348761Z"
+          }
+        },
+        "sensor_130": {
+          "$lastUpdated": "2023-06-29T05:01:27.6078943Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T05:01:27.6078943Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T05:01:27.6078943Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T05:01:27.6078943Z"
+          }
+        },
+        "sensor_131": {
+          "$lastUpdated": "2023-06-29T05:14:57.4691833Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T05:14:57.4691833Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T05:14:57.4691833Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T05:14:57.4691833Z"
+          }
+        },
+        "sensor_135": {
+          "$lastUpdated": "2023-06-29T05:17:30.9538346Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T05:17:30.9538346Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T05:17:30.9538346Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T05:17:30.9538346Z"
+          }
+        },
+        "sensor_139": {
+          "$lastUpdated": "2023-06-29T05:50:00.0818426Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T05:50:00.0818426Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T05:50:00.0818426Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T05:50:00.0818426Z"
+          }
+        },
+        "sensor_140": {
+          "$lastUpdated": "2023-06-29T05:59:31.7998307Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T05:59:31.7998307Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T05:59:31.7998307Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T05:59:31.7998307Z"
+          }
+        },
+        "sensor_145": {
+          "$lastUpdated": "2023-06-29T06:02:05.6270982Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T06:02:05.6270982Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T06:02:05.6270982Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T06:02:05.6270982Z"
+          }
+        },
+        "sensor_146": {
+          "$lastUpdated": "2023-06-29T09:23:15.4782529Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T09:23:15.4782529Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T09:23:15.4782529Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T09:23:15.4782529Z"
+          }
+        },
+        "sensor_147": {
+          "$lastUpdated": "2023-06-29T09:01:45.7452698Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T09:01:45.7452698Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T09:01:45.7452698Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T09:01:45.7452698Z"
+          }
+        },
+        "sensor_148": {
+          "$lastUpdated": "2023-06-29T09:14:03.9553972Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T09:14:03.9553972Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T09:14:03.9553972Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T09:14:03.9553972Z"
+          }
+        },
+        "sensor_149": {
+          "$lastUpdated": "2023-06-29T09:22:46.9456877Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T09:22:46.9456877Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T09:22:46.9456877Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T09:22:46.9456877Z"
+          }
+        },
+        "sensor_151": {
+          "$lastUpdated": "2023-06-29T09:31:25.1072775Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T09:31:25.1072775Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T09:31:25.1072775Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T09:31:25.1072775Z"
+          }
+        },
+        "sensor_152": {
+          "$lastUpdated": "2023-06-29T09:54:21.5338425Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T09:54:21.5338425Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T09:54:21.5338425Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T09:54:21.5338425Z"
+          }
+        },
+        "sensor_153": {
+          "$lastUpdated": "2023-06-29T10:33:25.3160892Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T10:33:25.3160892Z"
+          },
+          "moisture": {
+            "$lastUpdated": "2023-06-29T10:33:25.3160892Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T10:33:25.3160892Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T10:33:25.3160892Z"
+          }
+        },
+        "sensor_154": {
+          "$lastUpdated": "2023-06-29T10:44:56.630683Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T10:44:56.630683Z"
+          },
+          "moisture": {
+            "$lastUpdated": "2023-06-29T10:44:56.630683Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T10:44:56.630683Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T10:44:56.630683Z"
+          }
+        },
+        "sensor_155": {
+          "$lastUpdated": "2023-06-29T11:06:40.903429Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T11:06:40.903429Z"
+          },
+          "moisture": {
+            "$lastUpdated": "2023-06-29T11:06:40.903429Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T11:06:40.903429Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T11:06:40.903429Z"
+          }
+        },
+        "sensor_156": {
+          "$lastUpdated": "2023-06-29T11:24:52.7869987Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T11:24:52.7869987Z"
+          },
+          "moisture": {
+            "$lastUpdated": "2023-06-29T11:24:52.7869987Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T11:24:52.7869987Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T11:24:52.7869987Z"
+          }
+        },
+        "sensor_193": {
+          "$lastUpdated": "2023-07-04T04:47:22.4126554Z",
+          "humidity": {
+            "$lastUpdated": "2023-07-04T04:47:22.4126554Z"
+          },
+          "moisture": {
+            "$lastUpdated": "2023-07-04T04:47:22.4126554Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-07-04T04:47:22.4126554Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-07-04T04:47:22.4126554Z"
+          }
+        },
+        "sensor_197": {
+          "$lastUpdated": "2023-06-29T11:40:49.5643789Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T11:40:49.5643789Z"
+          },
+          "moisture": {
+            "$lastUpdated": "2023-06-29T11:40:49.5643789Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T11:40:49.5643789Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T11:40:49.5643789Z"
+          }
+        },
+        "sensor_199": {
+          "$lastUpdated": "2023-06-29T11:27:26.8044017Z",
+          "humidity": {
+            "$lastUpdated": "2023-06-29T11:27:26.8044017Z"
+          },
+          "moisture": {
+            "$lastUpdated": "2023-06-29T11:27:26.8044017Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-06-29T11:27:26.8044017Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-06-29T11:27:26.8044017Z"
+          }
+        },
+        "sensor_251": {
+          "$lastUpdated": "2023-07-04T04:50:26.0343628Z",
+          "humidity": {
+            "$lastUpdated": "2023-07-04T04:50:26.0343628Z"
+          },
+          "moisture": {
+            "$lastUpdated": "2023-07-04T04:50:26.0343628Z"
+          },
+          "temperature": {
+            "$lastUpdated": "2023-07-04T04:50:26.0343628Z"
+          },
+          "vibration": {
+            "$lastUpdated": "2023-07-04T04:50:26.0343628Z"
+          }
+        },
+        "sensor_id": {
+          "$lastUpdated": "2023-06-29T02:20:10.5900598Z"
+        },
+        "temperature": {
+          "$lastUpdated": "2023-07-05T02:30:28.6532394Z"
+        },
+        "vibration": {
+          "$lastUpdated": "2023-07-05T02:30:28.6532394Z"
+        }
+      },
+      "$version": 2481,
+      "100": {
+        "humidity": 87.0,
+        "moisture": 7.9,
+        "temperature": 32.0,
+        "vibration": 8.0
+      },
+      "101": {
+        "humidity": 87.0,
+        "moisture": 7.9,
+        "temperature": 32.0,
+        "vibration": 6.0
+      },
+      "110": {
+        "humidity": 81.0,
+        "moisture": 7.9,
+        "temperature": 31.0,
+        "vibration": 6.0
+      },
+      "can_device_id": 134,
+      "humidity": 86.0,
+      "moisture": 9.9,
+      "reported": {
+        "10": {
+          "humidity": 87.0,
+          "moisture": 7.9,
+          "temperature": 32.0,
+          "vibration": 9.0
+        },
+        "100": {
+          "can_device_id": 100,
+          "humidity": 87.0,
+          "moisture": 7.9,
+          "temperature": 32.0,
+          "vibration": 8.0
+        },
+        "1300": {
+          "humidity": 87.0,
+          "moisture": 7.9,
+          "temperature": 32.0,
+          "vibration": 9.0
+        },
+        "can_device_id": "187",
+        "humidity": 87.0,
+        "moisture": 7.9,
+        "temperature": 32.0,
+        "vibration": 2.0
+      },
+      "sensor": "sensor_136",
+      "sensor_1234": {
+        "humidity": 60.0,
+        "temperature": 25.5,
+        "vibration": "high"
+      },
+      "sensor_1235": {
+        "humidity": 40,
+        "temperature": 25,
+        "vibration": 3
+      },
+      "sensor_125": {
+        "humidity": 60,
+        "temperature": 28,
+        "vibration": 6
+      },
+      "sensor_126": {
+        "humidity": 60,
+        "temperature": 28,
+        "vibration": 6
+      },
+      "sensor_127": {
+        "humidity": 60,
+        "temperature": 28,
+        "vibration": 6
+      },
+      "sensor_130": {
+        "humidity": 60.0,
+        "temperature": 28.0,
+        "vibration": 5
+      },
+      "sensor_131": {
+        "humidity": 60.0,
+        "temperature": 28.0,
+        "vibration": "false"
+      },
+      "sensor_135": {
+        "humidity": 60.0,
+        "temperature": 28.0,
+        "vibration": "false"
+      },
+      "sensor_139": {
+        "humidity": 60.0,
+        "temperature": 28.0,
+        "vibration": 4
+      },
+      "sensor_140": {
+        "humidity": 62.0,
+        "temperature": 29.0,
+        "vibration": 4
+      },
+      "sensor_145": {
+        "humidity": 70.0,
+        "temperature": 33.0,
+        "vibration": 4
+      },
+      "sensor_146": {
+        "humidity": 70.0,
+        "temperature": 35.0,
+        "vibration": 4.0
+      },
+      "sensor_147": {
+        "humidity": 70,
+        "temperature": 33,
+        "vibration": 4
+      },
+      "sensor_148": {
+        "humidity": 70.0,
+        "temperature": 33.0,
+        "vibration": 4.0
+      },
+      "sensor_149": {
+        "humidity": 70.0,
+        "temperature": 35.0,
+        "vibration": 4.0
+      },
+      "sensor_151": {
+        "humidity": 70.0,
+        "temperature": 35.0,
+        "vibration": 7.0
+      },
+      "sensor_152": {
+        "humidity": 70.0,
+        "temperature": 35.0,
+        "vibration": 5.0
+      },
+      "sensor_153": {
+        "humidity": 70.0,
+        "moisture": 4.9,
+        "temperature": 35.0,
+        "vibration": 7.0
+      },
+      "sensor_154": {
+        "humidity": 70.0,
+        "moisture": 4.9,
+        "temperature": 35.0,
+        "vibration": 7.0
+      },
+      "sensor_155": {
+        "humidity": 76.0,
+        "moisture": 4.9,
+        "temperature": 38.0,
+        "vibration": 9.0
+      },
+      "sensor_156": {
+        "humidity": 78.0,
+        "moisture": 5.9,
+        "temperature": 39.0,
+        "vibration": 10.0
+      },
+      "sensor_193": {
+        "humidity": 81.0,
+        "moisture": 6.9,
+        "temperature": 31.0,
+        "vibration": 4.0
+      },
+      "sensor_197": {
+        "humidity": 81.0,
+        "moisture": 6.9,
+        "temperature": 31.0,
+        "vibration": 3.0
+      },
+      "sensor_199": {
+        "humidity": 81.0,
+        "moisture": 6.9,
+        "temperature": 32.0,
+        "vibration": 2.0
+      },
+      "sensor_251": {
+        "humidity": 81.0,
+        "moisture": 6.9,
+        "temperature": 31.0,
+        "vibration": 5.0
+      },
+      "sensor_id": "sensor112",
+      "temperature": 30.0,
+      "vibration": 5.0
+    }
+  },
