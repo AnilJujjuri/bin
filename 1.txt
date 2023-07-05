@@ -1,24 +1,17 @@
-from azure.iot.device import IoTHubDeviceClient
+# Use a base Python image
+FROM python:3.9
 
-def update_device_twin(device_connection_string, can_device_id, telemetry_data):
-    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
-    client.connect()
+# Set the working directory in the container
+WORKDIR /app
 
-    twin_patch = {
-        "reported": {
-            can_device_id: telemetry_data
-        }
-    }
-    client.patch_twin_reported_properties(twin_patch)
+# Copy the Python requirements file to the container
+COPY requirements.txt .
 
-    client.disconnect()
+# Install the Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-if __name__ == '__main__':
-    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
-    can_device_id = "1001"
-    telemetry_data = {
-        "temperature": 25.5,
-        "pressure": 1013.25,
-        "humidity": 50
-    }
-    update_device_twin(device_connection_string, can_device_id, telemetry_data)
+# Copy the Python source code to the container
+COPY main.py .
+
+# Run the Python application
+CMD [ "python", "main.py" ]
