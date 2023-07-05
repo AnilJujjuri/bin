@@ -44,7 +44,7 @@ class CanController:
 
 def handle_device_twin_update(twin, can_controller):
     reported_properties = twin.get("reported", {})
-    can_device_id = twin.get("can_device_id", "")
+    can_device_id = reported_properties.get("can_device_id", "")
 
     if not reported_properties:  # Skip if reported properties is empty
         return
@@ -60,7 +60,7 @@ def handle_device_twin_update(twin, can_controller):
             return
 
     for can_device, telemetry_data in reported_properties.items():
-        if isinstance(telemetry_data, dict):
+        if can_device != "can_device_id" and isinstance(telemetry_data, dict):
             candump, can_data = convert_telemetry_to_candump(telemetry_data)
             if candump is not None and can_data is not None:
                 can_controller.send_can_message(can_id, can_data)
