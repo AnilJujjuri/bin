@@ -1,23 +1,32 @@
-from azure.iot.device import IoTHubDeviceClient
+from azure.iot.device import IoTHubDeviceClient, Message
+import os
+import json
 
-# Define the connection string for the device
-device_connection_string = "HostName=<your-iot-hub>.azure-devices.net;DeviceId=<your-device-id>;SharedAccessKey=<your-device-access-key>"
+def send_twin_update(client, properties):
+    twin_patch = {"properties": {"reported": properties}}
+    twin_patch_json = json.dumps(twin_patch)
+    twin_message = Message(twin_patch_json)
+    twin_message.content_encoding = "utf-8"
+    twin_message.content_type = "application/json"
+    client.send_message(twin_message)
 
-# Create an instance of the IoT Hub Device Client
-client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+def main():
+    device_connection_string = os.getenv("DEVICE_CONNECTION_STRING")  # Read from environment variable
+    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
-# Connect to the IoT Hub
-client.connect()
+    client.connect()
 
-# Define the sample telemetry data
-telemetry_data = {
-    "temperature": 25.5,
-    "humidity": 60,
-    "pressure": 1013.25
-}
+    # Sample data to insert
+    properties = {
+        "temperature": 25.5,
+        "humidity": 70.2,
+        "pressure": 1013.25,
+        "status": "active"
+    }
 
-# Send the telemetry data to the device twin
-client.patch_twin_reported_properties(telemetry_data)
+    send_twin_update(client, properties)
 
-# Disconnect from the IoT Hub
-client.disconnect()
+    client.disconnect()
+
+if __name__ == '__main__':
+    main()
