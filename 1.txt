@@ -1,7 +1,6 @@
 from azure.iot.device import IoTHubDeviceClient
 import can
 import time
-import os
 
 def send_can_message(bus, can_id, data):
     message = can.Message(arbitration_id=can_id, data=data)
@@ -60,7 +59,7 @@ def handle_device_twin_update(twin, can_controller):
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
-    device_connection_string = os.getenv("DEVICE_CONNECTION_STRING")  # Read from environment variable
+    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
     client.connect()
