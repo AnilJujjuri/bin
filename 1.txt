@@ -54,7 +54,10 @@ def handle_device_twin_update(twin, can_controller):
         if isinstance(telemetry_data, dict):
             candump, can_data = convert_telemetry_to_candump(telemetry_data)
             if candump is not None and can_data is not None:
-                can_id = int(can_device_id) if can_device_id.isdigit() else 1001
+                if can_device_id in telemetry_data:
+                    can_id = int(telemetry_data[can_device_id]) if telemetry_data[can_device_id].isdigit() else 1001
+                else:
+                    can_id = 1001  # Default can_id
                 can_controller.send_can_message(can_id, can_data)
 
 def main():
