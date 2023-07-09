@@ -7,18 +7,13 @@ def send_can_message(bus, can_id, data):
     message = can.Message(arbitration_id=can_id, data=data)
     bus.send(message)
 
-def convert_telemetry_to_candump(telemetry_data):
-    candump = ""
+def convert_telemetry_to_candump(transmission_data):
+    can_id = transmission_data.get("can_id", 1001)  # Default CAN ID
     can_data = []
-    can_id = 1001  # Default value
 
-    for key, value in telemetry_data.items():
+    for key, value in transmission_data.items():
         if key == "can_id":
-            if isinstance(value, int):
-                can_id = value
-            elif isinstance(value, str) and value.isdigit():
-                can_id = int(value)
-            continue
+            continue  # Skip the "can_id" key
 
         if isinstance(value, int):
             byte_value = value % 256
@@ -36,9 +31,8 @@ def convert_telemetry_to_candump(telemetry_data):
             continue  # Skip unsupported data types
 
         can_data.append(byte_value)
-        candump += f"{key}_{byte_value}_"
 
-    return candump.rstrip("_"), can_data, can_id
+    return can_id, can_data
 
 class CanController:
     def __init__(self, bus):
@@ -52,18 +46,12 @@ class CanController:
             send_can_message(self.bus, can_id, can_data)
 
 def handle_device_twin_update(twin, can_controller, csv_file):
-    reported_properties = twin.get("reported", {})
-    can_device_id = twin.get("can_device_id", "")
-
-    if not reported_properties:  # Skip if reported properties is empty
-        return
-
-    for can_device_id, telemetry_data in reported_properties.items():
-        if isinstance(telemetry_data, dict):
-            candump, can_data, can_id = convert_telemetry_to_candump(telemetry_data)
-            if candump is not None and can_data is not None:
-                can_controller.send_can_message(can_id, can_data)
-                write_to_csv(csv_file, can_id, can_data)
+    transmission_data = twin.get("reported", {}).get("transmission_data")
+    if transmission_data and isinstance(transmission_data, dict):
+        can_id, can_data = convert_telemetry_to_candump(transmission_data)
+        if can_data:
+            can_controller.send_can_message(can_id, can_data)
+            write_to_csv(csv_file, can_id, can_data)
 
 def write_to_csv(csv_file, can_id, can_data):
     with open(csv_file, 'a', newline='') as file:
