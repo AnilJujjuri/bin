@@ -66,7 +66,7 @@ def handle_device_twin_update(twin, can_controller):
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
-    device_connection_string = "YOUR_DEVICE_CONNECTION_STRING"
+    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
     client.connect()
@@ -78,7 +78,7 @@ def main():
             handle_device_twin_update(twin, can_controller)
             # Retry mechanism
             if retry_counter < 3:
-                time.sleep(20)  # Wait for 20 seconds between retries
+                time.sleep(30)  # Wait for 20 seconds between retries
                 retry_counter += 1
             else:
                 break  # Disconnect after the maximum number of retries
