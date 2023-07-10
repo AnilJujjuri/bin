@@ -70,21 +70,26 @@ def main():
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
     client.connect()
-    retry_counter = 0
     can_controller = CanController(bus)
+    retry_counter = 0
+
     while True:
         try:
             twin = client.get_twin()
             handle_device_twin_update(twin, can_controller)
-            # Retry mechanism
-            if retry_counter < 3:
-                time.sleep(30)  # Wait for 20 seconds between retries
-                retry_counter += 1
-            else:
-                break  # Disconnect after the maximum number of retries
+            # Reset retry counter on successful update
+            retry_counter = 0
         except Exception as e:
             print("Exception caught:", str(e))
-            continue
+            # Retry mechanism
+            if retry_counter < 3:
+                time.sleep(30)  # Wait for 30 seconds between retries
+                retry_counter += 1
+                continue
+            else:
+                break  # Disconnect after the maximum number of retries
+
+        time.sleep(1)
 
     client.disconnect()
 
