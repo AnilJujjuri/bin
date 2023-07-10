@@ -1,27 +1,107 @@
 from azure.iot.device import IoTHubDeviceClient
+import can
+import time
+import csv
+import os
 
-def send_telemetry(device_connection_string, telemetry_data):
-    # Create an instance of the IoTHubDeviceClient
+def send_can_message(bus, can_id, data):
+    message = can.Message(arbitration_id=can_id, data=data)
+    bus.send(message)
+
+def convert_telemetry_to_candump(transmission_data):
+    can_id = transmission_data.get("can_id", 1001)  # Default CAN ID
+    can_data = []
+
+    for key, value in transmission_data.items():
+        if key == "can_id":
+            continue  # Skip the "can_id" key
+
+        if isinstance(value, int):
+            byte_value = value % 256
+        elif isinstance(value, float):
+            byte_value = int(value) % 256
+        elif isinstance(value, str):
+            try:
+                byte_value = int(value) % 256
+            except ValueError:
+                try:
+                    byte_value = int(float(value)) % 256
+                except ValueError:
+                    continue  # Skip this key-value pair if conversion is not possible
+        else:
+            continue  # Skip unsupported data types
+
+        can_data.append(byte_value)
+
+    return can_id, can_data
+
+class CanController:
+    def __init__(self, bus):
+        self.last_messages = {}
+        self.bus = bus
+
+    def send_can_message(self, can_id, can_data):
+        message_key = f"{can_id}_{can_data}"
+        if message_key not in self.last_messages:
+            self.last_messages[message_key] = True
+            send_can_message(self.bus, can_id, can_data)
+
+def handle_device_twin_update(twin, can_controller, csv_file):
+    transmission_data = twin.get("reported", {}).get("transmission_data")
+    if transmission_data and isinstance(transmission_data, dict):
+        can_id, can_data = convert_telemetry_to_candump(transmission_data)
+        if can_data:
+            can_controller.send_can_message(can_id, can_data)
+            write_to_csv(csv_file, can_id, can_data)
+
+def write_to_csv(csv_file, can_id, can_data):
+    file_exists = os.path.isfile(csv_file)
+    with open(csv_file, 'a', newline='') as file:
+        writer = csv.writer(file)
+        if not file_exists:
+            writer.writerow(["can_id"] + [f"byte_{i}" for i in range(len(can_data))])
+        writer.writerow([can_id] + can_data)
+
+def receive_can_messages(bus, csv_file):
+    with open(csv_file, 'a', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+
+        while True:
+            message = bus.recv()
+            can_id = message.arbitration_id
+            data = message.data
+
+            writer.writerow([can_id] + list(data))
+            csvfile.flush()
+
+def main(csv_file):
+    bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
+
+    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
-    # Connect to IoT Hub
     client.connect()
+    retry_counter = 0
+    can_controller = CanController(bus)
+    print("Started listening for Device Twin updates...")
+    while True:
+        try:
+            twin = client.get_twin()
+            handle_device_twin_update(twin, can_controller, csv_file)
+            # Retry mechanism
+            if retry_counter < 3:
+                time.sleep(30)  # Wait for 20 seconds between retries
+                retry_counter += 1
+            else:
+                break  # Disconnect after the maximum number of retries
+        except Exception as e:
+            print("Exception caught:", str(e))
+            continue
 
-    # Send the telemetry data to the device twin
-    reported_properties = {"transmission_data": telemetry_data}
-    client.patch_twin_reported_properties(reported_properties)
-
-    # Disconnect from IoT Hub
     client.disconnect()
+    print("Stopped listening for Device Twin updates.")
 
 if __name__ == '__main__':
-    # Define the device connection string and telemetry data
-    connection_string = "HostName=your-iot-hub.azure-devices.net;DeviceId=your-device-id;SharedAccessKey=your-shared-access-key"
-    telemetry_data = {
-        "can_id": 1001,
-        "temperature": 25.5,
-        "pressure": 1013.25
-    }
-
-    # Send telemetry data to Device Twin
-    send_telemetry(connection_string, telemetry_data)
+    csv_file = "can_data.csv"
+    print("Starting CAN Data Logger...")
+    main(csv_file)
