@@ -59,9 +59,12 @@ class CanController:
             message = self.bus.recv()
             can_id = message.arbitration_id
             can_data = list(message.data)
-            with open(self.csv_file, 'a', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow([can_id] + can_data)
+            can_message_key = f"{can_id}_{can_data}"
+            if can_message_key not in self.last_messages:
+                self.last_messages[can_message_key] = True
+                with open(self.csv_file, 'a', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow([can_id] + can_data)
 
 def handle_device_twin_update(twin, can_controller):
     transmission_data = twin.get("reported", {}).get("transmission_data")
