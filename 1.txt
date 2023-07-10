@@ -1,5 +1,7 @@
 from azure.iot.device import IoTHubDeviceClient
 import can
+import csv
+import threading
 import time
 
 def send_can_message(bus, can_id, data):
@@ -63,6 +65,20 @@ def handle_device_twin_update(twin, can_controller):
             if candump is not None and can_data is not None:
                 can_controller.send_can_message(can_id, can_data)
 
+def receive_can_message(bus):
+    with open('received_can_messages.csv', 'w', newline='') as csvfile:
+        fieldnames = ['Timestamp', 'CAN_ID', 'CAN_Data']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+
+        while True:
+            message = bus.recv()
+            can_id = message.arbitration_id
+            can_data = message.data
+            timestamp = time.time()
+
+            writer.writerow({'Timestamp': timestamp, 'CAN_ID': can_id, 'CAN_Data': can_data.hex()})
+
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
@@ -72,6 +88,11 @@ def main():
     client.connect()
     retry_counter = 0
     can_controller = CanController(bus)
+
+    # Start a new thread to receive CAN messages
+    receive_thread = threading.Thread(target=receive_can_message, args=(bus,))
+    receive_thread.start()
+
     while True:
         try:
             twin = client.get_twin()
