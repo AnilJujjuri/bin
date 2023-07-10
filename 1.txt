@@ -1,2 +1,15 @@
-Exception caught: 'list' object has no attribute 'arbitration_id'
-Exception caught in background thread.  Unable to handle.
+def receive_can_message(bus, output_file):
+    with open(output_file, 'a', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        try:
+            while True:
+                message = bus.recv()
+                print("Received message:", message)  # Print the received message for debugging
+                if isinstance(message, can.Message) and hasattr(message, 'arbitration_id') and hasattr(message, 'data'):
+                    can_id = message.arbitration_id
+                    can_data = message.data
+                    writer.writerow([can_id] + can_data)
+                else:
+                    print("Invalid message format:", message)
+        except KeyboardInterrupt:
+            pass
