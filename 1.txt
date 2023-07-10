@@ -44,9 +44,9 @@ class CanController:
     def send_can_message(self, can_id, can_data):
         send_can_message(self.bus, can_id, can_data)
 
-def handle_device_twin_update(patch, can_controller):
-    reported_properties = patch.get("reported", {})
-    can_device_id = patch.get("can_device_id", "")
+def handle_device_twin_update(twin, can_controller):
+    reported_properties = twin.get("reported", {})
+    can_device_id = twin.get("can_device_id", "")
 
     if not reported_properties:  # Skip if reported properties is empty
         return
@@ -65,26 +65,21 @@ def main():
 
     can_controller = CanController(bus)
 
-    def twin_update_callback(patch):
-        handle_device_twin_update(patch, can_controller)
-
     client.connect()
-    client.on_twin_desired_properties_patch_received = twin_update_callback
-
     retry_counter = 0
     while True:
         try:
             twin = client.get_twin()
             handle_device_twin_update(twin, can_controller)
-            retry_counter = 0  # Reset the retry counter on successful update
-            time.sleep(1)
-        except Exception as e:
-            print("Exception caught:", str(e))
+            # Retry mechanism
             if retry_counter < 3:
                 time.sleep(20)  # Wait for 20 seconds between retries
                 retry_counter += 1
             else:
                 break  # Disconnect after the maximum number of retries
+        except Exception as e:
+            print("Exception caught:", str(e))
+            continue
 
     client.disconnect()
 
