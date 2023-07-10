@@ -40,17 +40,13 @@ def convert_telemetry_to_candump(telemetry_data):
 class CanController:
     def __init__(self, bus):
         self.bus = bus
-        self.last_messages = {}
 
     def send_can_message(self, can_id, can_data):
-        message_key = f"{can_id}_{can_data}"
-        if message_key not in self.last_messages:
-            self.last_messages[message_key] = True
-            send_can_message(self.bus, can_id, can_data)
+        send_can_message(self.bus, can_id, can_data)
 
-def handle_device_twin_update(twin, can_controller):
-    reported_properties = twin.get("reported", {})
-    can_device_id = twin.get("can_device_id", "")
+def handle_device_twin_update(patch, can_controller):
+    reported_properties = patch.get("reported", {})
+    can_device_id = patch.get("can_device_id", "")
 
     if not reported_properties:  # Skip if reported properties is empty
         return
@@ -70,20 +66,13 @@ def main():
     can_controller = CanController(bus)
 
     client.connect()
-    retry_counter = 0
+    client.on_twin_desired_properties_patch_received = handle_device_twin_update
+
     while True:
         try:
-            twin = client.get_twin()
-            handle_device_twin_update(twin, can_controller)
-            # Retry mechanism
-            if retry_counter < 3:
-                time.sleep(20)  # Wait for 20 seconds between retries
-                retry_counter += 1
-            else:
-                break  # Disconnect after the maximum number of retries
-        except Exception as e:
-            print("Exception caught:", str(e))
-            continue
+            time.sleep(1)
+        except KeyboardInterrupt:
+            break
 
     client.disconnect()
 
