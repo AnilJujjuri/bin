@@ -71,6 +71,7 @@ def main(csv_file):
     client.connect()
     retry_counter = 0
     can_controller = CanController(bus)
+    print("Started listening for Device Twin updates...")
     while True:
         try:
             twin = client.get_twin()
@@ -86,7 +87,9 @@ def main(csv_file):
             continue
 
     client.disconnect()
+    print("Stopped listening for Device Twin updates.")
 
 if __name__ == '__main__':
     csv_file = "can_data.csv"
+    print("Starting CAN Data Logger...")
     main(csv_file)
