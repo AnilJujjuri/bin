@@ -1,15 +1,29 @@
-def receive_can_message(bus, output_file):
-    with open(output_file, 'a', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        try:
-            while True:
-                message = bus.recv()
-                print("Received message:", message)  # Print the received message for debugging
-                if isinstance(message, can.Message) and hasattr(message, 'arbitration_id') and hasattr(message, 'data'):
-                    can_id = message.arbitration_id
-                    can_data = message.data
-                    writer.writerow([can_id] + can_data)
-                else:
-                    print("Invalid message format:", message)
-        except KeyboardInterrupt:
-            pass
+from azure.iot.device import IoTHubDeviceClient
+
+def send_telemetry_data(device_connection_string, telemetry_data):
+    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+    client.connect()
+
+    reported_properties = {
+        "reported": {
+            "can_device_id": "device_id",
+            "telemetry_data": telemetry_data
+        }
+    }
+    client.patch_twin_reported_properties(reported_properties)
+
+    client.disconnect()
+
+# Example telemetry data
+telemetry_data = {
+    "temperature": 25.5,
+    "pressure": 10.2,
+    "speed": 55,
+    "status": "OK"
+}
+
+# Example connection string
+device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
+
+# Call the function to send telemetry data
+send_telemetry_data(device_connection_string, telemetry_data)
