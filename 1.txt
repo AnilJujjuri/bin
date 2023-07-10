@@ -58,13 +58,15 @@ def receive_and_write_to_csv(bus, csv_file):
     with open(csv_file, 'a', newline='') as file:
         writer = csv.writer(file)
         if not file_exists:
-            writer.writerow(["can_id", "byte_0", "byte_1", "byte_2", "byte_3", "byte_4", "byte_5", "byte_6", "byte_7"])
+            writer.writerow(["message"])
 
         while True:
             message = bus.recv()
             can_id = message.arbitration_id
             can_data = list(message.data)
-            writer.writerow([can_id] + can_data)
+            message_str = f"{can_id}: {' '.join(hex(byte)[2:].zfill(2) for byte in can_data)}"
+            print(message_str)
+            writer.writerow([message_str])
 
 def main(csv_file):
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
