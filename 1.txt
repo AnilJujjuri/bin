@@ -85,9 +85,6 @@ def main(csv_file):
             print("Exception caught:", str(e))
             continue
 
-    client.disconnect()
-    print("Stopped listening for Device Twin updates.")
-
 if __name__ == '__main__':
     csv_file = "can_data.csv"
     print("Starting CAN Data Logger...")
