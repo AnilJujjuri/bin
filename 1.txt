@@ -7,7 +7,6 @@ def send_can_message(bus, can_id, data):
     bus.send(message)
 
 def convert_telemetry_to_candump(telemetry_data):
-    candump = ""
     can_data = []
     can_id = 1001  # Default value
 
@@ -35,9 +34,8 @@ def convert_telemetry_to_candump(telemetry_data):
             continue  # Skip unsupported data types
 
         can_data.append(byte_value)
-        candump += f"{key}_{byte_value}_"
 
-    return candump.rstrip("_"), can_data, can_id
+    return can_data, can_id
 
 class CanController:
     def __init__(self, bus):
@@ -55,8 +53,8 @@ def handle_device_twin_update(twin, can_controller):
 
     for can_device_id, telemetry_data in reported_properties.items():
         if isinstance(telemetry_data, dict):
-            candump, can_data, can_id = convert_telemetry_to_candump(telemetry_data)
-            if candump is not None and can_data is not None:
+            can_data, can_id = convert_telemetry_to_candump(telemetry_data)
+            if can_data:
                 can_controller.send_can_message(can_id, can_data)
 
 def main():
