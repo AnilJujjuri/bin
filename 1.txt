@@ -8,6 +8,6 @@ def receive_can_message(bus):
         data = {'Timestamp': timestamp, 'CAN_ID': can_id, 'CAN_Data': can_data.hex()}
         df = pd.DataFrame(data, index=[0])
 
-        # Append the data to the CSV file
-        with open('received_can_messages.csv', 'a', newline='') as csvfile:
-            df.to_csv(csvfile, header=csvfile.tell() == 0, index=False, mode='a')
+        # Append the data to the CSV file or create a new file if it doesn't exist
+        with open('received_can_messages.csv', 'a+', newline='') as csvfile:
+            df.to_csv(csvfile, header=csvfile.tell() == 0, index=False, mode='a+')
