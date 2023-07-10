@@ -46,33 +46,25 @@ class CanController:
             self.last_messages[message_key] = True
             send_can_message(self.bus, can_id, can_data)
 
-def handle_device_twin_update(twin, can_controller, csv_file):
+def handle_device_twin_update(twin, can_controller):
     transmission_data = twin.get("reported", {}).get("transmission_data")
     if transmission_data and isinstance(transmission_data, dict):
         can_id, can_data = convert_telemetry_to_candump(transmission_data)
         if can_data:
             can_controller.send_can_message(can_id, can_data)
-            write_to_csv(csv_file, can_id, can_data)
 
-def write_to_csv(csv_file, can_id, can_data):
+def receive_and_write_to_csv(bus, csv_file):
     file_exists = os.path.isfile(csv_file)
     with open(csv_file, 'a', newline='') as file:
         writer = csv.writer(file)
         if not file_exists:
-            writer.writerow(["can_id"] + [f"byte_{i}" for i in range(len(can_data))])
-        writer.writerow([can_id] + can_data)
-
-def receive_can_messages(bus, csv_file):
-    with open(csv_file, 'a', newline='') as csvfile:
-        writer = csv.writer(csvfile)
+            writer.writerow(["can_id", "byte_0", "byte_1", "byte_2", "byte_3", "byte_4", "byte_5", "byte_6", "byte_7"])
 
         while True:
             message = bus.recv()
             can_id = message.arbitration_id
-            data = message.data
-
-            writer.writerow([can_id] + list(data))
-            csvfile.flush()
+            can_data = list(message.data)
+            writer.writerow([can_id] + can_data)
 
 def main(csv_file):
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
@@ -81,19 +73,12 @@ def main(csv_file):
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
     client.connect()
-    retry_counter = 0
     can_controller = CanController(bus)
     print("Started listening for Device Twin updates...")
     while True:
         try:
             twin = client.get_twin()
-            handle_device_twin_update(twin, can_controller, csv_file)
-            # Retry mechanism
-            if retry_counter < 3:
-                time.sleep(30)  # Wait for 20 seconds between retries
-                retry_counter += 1
-            else:
-                break  # Disconnect after the maximum number of retries
+            handle_device_twin_update(twin, can_controller)
         except Exception as e:
             print("Exception caught:", str(e))
             continue
@@ -104,4 +89,4 @@ def main(csv_file):
 if __name__ == '__main__':
     csv_file = "can_data.csv"
     print("Starting CAN Data Logger...")
-    main(csv_file)
+    receive_and_write_to_csv(can.interface.Bus(channel='vcan0', bustype='socketcan'), csv_file)
