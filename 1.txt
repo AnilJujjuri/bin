@@ -67,13 +67,12 @@ def main():
     client.connect()
     can_controller = CanController(bus)
     retry_counter = 0
-    last_patch_id = None
+    last_patch_id = ""
 
     while True:
         try:
             twin = client.get_twin()
             patch_id = twin.get("properties", {}).get("desired", {}).get("$version")
-
             if patch_id and patch_id != last_patch_id:
                 last_patch_id = patch_id
                 handle_device_twin_update(twin, can_controller)
