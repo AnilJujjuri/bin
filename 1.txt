@@ -40,9 +40,13 @@ def convert_telemetry_to_candump(telemetry_data):
 class CanController:
     def __init__(self, bus):
         self.bus = bus
+        self.last_messages = {}
 
     def send_can_message(self, can_id, can_data):
-        send_can_message(self.bus, can_id, can_data)
+        message_key = f"{can_id}_{can_data}"
+        if message_key not in self.last_messages:
+            self.last_messages[message_key] = True
+            send_can_message(self.bus, can_id, can_data)
 
 def handle_device_twin_update(patch, can_controller):
     reported_properties = patch.get("reported", {})
