@@ -85,7 +85,7 @@ def main(csv_file):
                 if can_message:
                     can_id = can_message.arbitration_id
                     can_data = ' '.join(format(byte, '02X') for byte in can_message.data)
-                    print(f"Received CAN message: ID: {can_id}    Data: {can_data}")
+                    print(f"Received CAN message: Timestamp: {can_message.timestamp}    ID: {can_id:08X}    Data: {can_data}    Channel: {can_message.channel_info}")
         except Exception as e:
             print("Exception caught:", str(e))
             if retry_counter < 3:
