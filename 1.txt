@@ -41,14 +41,10 @@ def convert_telemetry_to_candump(telemetry_data):
 
 class CanController:
     def __init__(self, bus):
-        self.last_messages = {}
         self.bus = bus
 
     def send_can_message(self, can_id, can_data):
-        message_key = f"{can_id}_{can_data}"
-        if message_key not in self.last_messages:
-            self.last_messages[message_key] = True
-            send_can_message(self.bus, can_id, can_data)
+        send_can_message(self.bus, can_id, can_data)
 
 def handle_device_twin_update(twin, can_controller):
     reported_properties = twin.get("reported", {})
@@ -70,31 +66,46 @@ def main(debug=False):
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
     client.connect()
-    retry_counter = 0
     can_controller = CanController(bus)
-    last_message_timestamp = time.time()  # Initialize last message timestamp
+
+    # Load previously sent messages from file
+    sent_messages = load_sent_messages()
 
     while True:
         try:
             twin = client.get_twin()
             handle_device_twin_update(twin, can_controller)
-            # Retry mechanism
-            if retry_counter < 3:
-                time.sleep(30)  # Wait for 30 seconds between retries
-                retry_counter += 1
-            else:
-                break  # Disconnect after the maximum number of retries
+
+            # Check if a new message should be sent
+            if should_send_message(sent_messages):
+                can_controller.send_can_message(1001, [0])  # Example message, replace with your logic
+                sent_messages.append(generate_message_key())  # Append the sent message to the list
+                save_sent_messages(sent_messages)  # Save the updated list to the file
+
         except Exception as e:
             print("Exception caught:", str(e))
             continue
 
-        # Compare last message timestamp to current time
-        current_time = time.time()
-        if (current_time - last_message_timestamp) > 10:  # Send messages at least every 10 seconds
-            can_controller.send_can_message(1001, [0])  # Example message, replace with your logic
-            last_message_timestamp = current_time
+        time.sleep(1)
 
     client.disconnect()
+
+def load_sent_messages():
+    try:
+        with open("sent_messages.txt", "r") as file:
+            return file.read().splitlines()
+    except FileNotFoundError:
+        return []
+
+def save_sent_messages(sent_messages):
+    with open("sent_messages.txt", "w") as file:
+        file.write("\n".join(sent_messages))
+
+def should_send_message(sent_messages):
+    return generate_message_key() not in sent_messages
+
+def generate_message_key():
+    return time.strftime("%Y%m%d%H%M%S")
 
 if __name__ == '__main__':
     main(debug=True)
