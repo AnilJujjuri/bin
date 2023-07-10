@@ -72,19 +72,27 @@ def main(debug=False):
     client.connect()
     retry_counter = 0
     can_controller = CanController(bus)
+    last_message_timestamp = time.time()  # Initialize last message timestamp
+
     while True:
         try:
             twin = client.get_twin()
             handle_device_twin_update(twin, can_controller)
             # Retry mechanism
             if retry_counter < 3:
-                time.sleep(30)  # Wait for 20 seconds between retries
+                time.sleep(30)  # Wait for 30 seconds between retries
                 retry_counter += 1
             else:
                 break  # Disconnect after the maximum number of retries
         except Exception as e:
             print("Exception caught:", str(e))
             continue
+
+        # Compare last message timestamp to current time
+        current_time = time.time()
+        if (current_time - last_message_timestamp) > 10:  # Send messages at least every 10 seconds
+            can_controller.send_can_message(1001, [0])  # Example message, replace with your logic
+            last_message_timestamp = current_time
 
     client.disconnect()
 
