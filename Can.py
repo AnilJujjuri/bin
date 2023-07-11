@@ -96,3 +96,26 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/common/auth/connection_string.py", line 37, in _parse_connection_string
+    cs_args = connection_string.split(CS_DELIMITER)
+AttributeError: 'NoneType' object has no attribute 'split'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/Machine1/can_connector/can_connector/src/new.py", line 98, in <module>
+    main()
+  File "/home/Machine1/can_connector/can_connector/src/new.py", line 76, in main
+    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/patch_documentation.py", line 84, in create_from_connection_string
+    return super(IoTHubDeviceClient, cls).create_from_connection_string(
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/iothub/abstract_clients.py", line 284, in create_from_connection_string
+    connection_string = cs.ConnectionString(connection_string)
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/common/auth/connection_string.py", line 86, in __init__
+    self._dict = _parse_connection_string(connection_string)
+  File "/usr/local/lib/python3.8/dist-packages/azure/iot/device/common/auth/connection_string.py", line 39, in _parse_connection_string
+    raise TypeError("Connection String must be of type str")
+TypeError: Connection String must be of type str
+SocketcanBus was not properly shut down
