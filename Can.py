@@ -46,12 +46,14 @@ class CanController:
     def send_can_message(self, can_id, can_data):
         send_can_message(self.bus, can_id, can_data)
 
-def handle_device_twin_update(patch, can_controller):
-    desired_properties = patch.get("desired", {})
-    can_device_id = patch.get("can_device_id", "")
+def handle_device_twin_update(twin, can_controller):
+    reported_properties = twin.get("reported", {})
+    can_device_id = twin.get("can_device_id", "")
 
-    if desired_properties and can_device_id:
-        telemetry_data = desired_properties.get(can_device_id)
+    if not reported_properties:  # Skip if reported properties is empty
+        return
+
+    for can_device_id, telemetry_data in reported_properties.items():
         if isinstance(telemetry_data, dict):
             candump, can_data, can_id = convert_telemetry_to_candump(telemetry_data)
             if candump is not None and can_data is not None:
@@ -70,6 +72,21 @@ def main():
 
     client.connect()
     client.on_twin_desired_properties_patch_received = twin_update_handler
+
+    # Define the sample data to update the desired properties
+    sample_data = {
+        "can_device_id": "my_can_device",
+        "desired": {
+            "my_can_device": {
+                "telemetry1": 42,
+                "telemetry2": 3.14,
+                "telemetry3": "value"
+            }
+        }
+    }
+
+    # Send the sample data to the desired twin
+    client.patch_twin_desired_properties(sample_data)
 
     while True:
         try:
