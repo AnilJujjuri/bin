@@ -1,25 +1,83 @@
 from azure.iot.device import IoTHubDeviceClient
+import can
+import time
 
-device_connection_string = "HostName=<your-iothub-hostname>;DeviceId=<your-device-id>;SharedAccessKey=<your-shared-access-key>"
+def send_can_message(bus, can_id, data):
+    message = can.Message(arbitration_id=can_id, data=data)
+    bus.send(message)
 
-# Create an instance of the IoTHubDeviceClient
-client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+def convert_telemetry_to_candump(telemetry_data):
+    candump = ""
+    can_data = []
+    can_id = 1001  # Default value
 
-# Connect to the IoT Hub
-client.connect()
+    for key, value in telemetry_data.items():
+        if key == "can_id":
+            if isinstance(value, int):
+                can_id = value
+            elif isinstance(value, str) and value.isdigit():
+                can_id = int(value)
+            continue
 
-# Define the sample data
-sample_data = {
-    "can_device_id": "my_can_device",
-    "my_can_device": {
-        "telemetry1": 42,
-        "telemetry2": 3.14,
-        "telemetry3": "value"
-    }
-}
+        if isinstance(value, int):
+            byte_value = value % 256
+        elif isinstance(value, float):
+            byte_value = int(value) % 256
+        elif isinstance(value, str):
+            try:
+                byte_value = int(value) % 256
+            except ValueError:
+                try:
+                    byte_value = int(float(value)) % 256
+                except ValueError:
+                    continue  # Skip this key-value pair if conversion is not possible
+        else:
+            continue  # Skip unsupported data types
 
-# Send the sample data to the device twin
-client.patch_twin_reported_properties(sample_data)
+        can_data.append(byte_value)
+        candump += f"{key}_{byte_value}_"
 
-# Disconnect from the IoT Hub
-client.disconnect()
+    return candump.rstrip("_"), can_data, can_id
+
+class CanController:
+    def __init__(self, bus):
+        self.bus = bus
+
+    def send_can_message(self, can_id, can_data):
+        send_can_message(self.bus, can_id, can_data)
+
+def handle_device_twin_update(patch, can_controller):
+    desired_properties = patch.get("desired", {})
+    can_device_id = patch.get("can_device_id", "")
+
+    if desired_properties and can_device_id:
+        telemetry_data = desired_properties.get(can_device_id)
+        if isinstance(telemetry_data, dict):
+            candump, can_data, can_id = convert_telemetry_to_candump(telemetry_data)
+            if candump is not None and can_data is not None:
+                can_controller.send_can_message(can_id, can_data)
+
+def main():
+    bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
+
+    device_connection_string = "HostName=<your-iothub-hostname>;DeviceId=<your-device-id>;SharedAccessKey=<your-shared-access-key>"
+    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+
+    can_controller = CanController(bus)
+
+    def twin_update_handler(update):
+        handle_device_twin_update(update, can_controller)
+
+    client.connect()
+    client.on_twin_desired_properties_patch_received = twin_update_handler
+
+    while True:
+        try:
+            time.sleep(1)
+        except KeyboardInterrupt:
+            break
+
+    client.disconnect()
+
+if __name__ == '__main__':
+    main()
