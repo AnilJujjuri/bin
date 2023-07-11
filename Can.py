@@ -41,10 +41,14 @@ def convert_telemetry_to_candump(telemetry_data):
 
 class CanController:
     def __init__(self, bus):
+        self.last_messages = {}
         self.bus = bus
 
     def send_can_message(self, can_id, can_data):
-        send_can_message(self.bus, can_id, can_data)
+        message_key = f"{can_id}_{can_data}"
+        if message_key not in self.last_messages:
+            self.last_messages[message_key] = True
+            send_can_message(self.bus, can_id, can_data)
 
 def handle_device_twin_update(twin, can_controller):
     reported_properties = twin.get("reported", {})
@@ -59,42 +63,65 @@ def handle_device_twin_update(twin, can_controller):
             if candump is not None and can_data is not None:
                 can_controller.send_can_message(can_id, can_data)
 
-def main():
+def main(debug=False):
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
-    device_connection_string = "HostName=<your-iothub-hostname>;DeviceId=<your-device-id>;SharedAccessKey=<your-shared-access-key>"
+    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
-    can_controller = CanController(bus)
-
-    def twin_update_handler(update):
-        handle_device_twin_update(update, can_controller)
-
     client.connect()
-    client.on_twin_desired_properties_patch_received = twin_update_handler
-
-    # Define the sample data to update the desired properties
-    sample_data = {
-        "can_device_id": "my_can_device",
-        "desired": {
-            "my_can_device": {
-                "telemetry1": 42,
-                "telemetry2": 3.14,
-                "telemetry3": "value"
-            }
-        }
-    }
-
-    # Send the sample data to the desired twin
-    client.patch_twin_desired_properties(sample_data)
-
+    retry_counter = 0
+    can_controller = CanController(bus)
     while True:
         try:
-            time.sleep(1)
-        except KeyboardInterrupt:
-            break
+            twin = client.get_twin()
+            handle_device_twin_update(twin, can_controller)
+            # Retry mechanism
+            if retry_counter < 3:
+                time.sleep(30)  # Wait for 20 seconds between retries
+                retry_counter += 1
+            else:
+                break  # Disconnect after the maximum number of retries
+        except Exception as e:
+            print("Exception caught:", str(e))
+            continue
 
     client.disconnect()
+
+if __name__ == '__main__':
+    main(debug=True)
+
+
+
+from azure.iot.device import IoTHubDeviceClient
+import can
+import csv
+import os
+
+def receive_can_messages(bus):
+    csv_file = 'received_can_messages.csv'
+    file_exists = os.path.isfile(csv_file)
+    with open(csv_file, 'a+', newline='') as csvfile:
+        fieldnames = ['Timestamp', 'CAN_ID', 'CAN_Data']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        if not file_exists:  # If the file doesn't exist, write the header
+            writer.writeheader()
+
+        while True:
+            message = bus.recv()
+            can_id = message.arbitration_id
+            can_data = message.data.hex()
+            timestamp = message.timestamp
+
+            writer.writerow({'Timestamp': timestamp, 'CAN_ID': can_id, 'CAN_Data': can_data})
+            csvfile.flush()  # Flush the buffer to ensure immediate write to the file
+
+            print(f"Received CAN message: {message}")
+
+def main():
+    bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
+    receive_can_messages(bus)
 
 if __name__ == '__main__':
     main()
