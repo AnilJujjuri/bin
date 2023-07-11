@@ -1,8 +1,9 @@
-from azure.iot.device import IoTHubDeviceClient
+from azure.iot.device import IoTHubDeviceClient, Message
 import can
 import csv
 import threading
 import time
+import json
 
 def send_can_message(bus, can_id, data):
     message = can.Message(arbitration_id=can_id, data=data)
@@ -62,7 +63,7 @@ class CanController:
                     }
                 }
             }
-            self.client.send_reported_state(reported_properties)
+            self.client.send_message(Message(json.dumps(reported_properties)))
 
 def handle_device_twin_update(patch, can_controller):
     reported_properties = patch.get("reported", {})
@@ -121,7 +122,7 @@ def main():
     }
 
     # Send the sample data to the desired twin
-    client.patch_twin_desired_properties(sample_data)
+    client.update_twin_properties(sample_data)
 
     while True:
         try:
