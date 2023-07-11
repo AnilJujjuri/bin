@@ -1,58 +1,25 @@
-/from azure.iot.device import IoTHubDeviceClient
-import can
-import time
+from azure.iot.device import IoTHubDeviceClient
 
-def send_can_message(bus, can_id, data):
-    message = can.Message(arbitration_id=can_id, data=data)
-    bus.send(message)
+device_connection_string = "HostName=<your-iothub-hostname>;DeviceId=<your-device-id>;SharedAccessKey=<your-shared-access-key>"
 
-def convert_telemetry_to_candump(temperature, humidity):
-    # Convert telemetry data to candump format
-    # Adjust the conversion logic based on your specific telemetry data structure
-    temperature = int(temperature * 10)  # Scale and convert to integer
-    humidity = int(humidity * 10)  # Scale and convert to integer
+# Create an instance of the IoTHubDeviceClient
+client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
-    candump = f"001 #{temperature:02X}{humidity:02X}"  # Assuming sensor_id is constant as '001'
+# Connect to the IoT Hub
+client.connect()
 
-    return candump
+# Define the sample data
+sample_data = {
+    "can_device_id": "my_can_device",
+    "my_can_device": {
+        "telemetry1": 42,
+        "telemetry2": 3.14,
+        "telemetry3": "value"
+    }
+}
 
-def main(debug=False):
-    # Create a CAN bus instance for the 'vcan0' interface
-    bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
+# Send the sample data to the device twin
+client.patch_twin_reported_properties(sample_data)
 
-    # Create an instance of the IoTHubDeviceClient
-    device_connection_string = "<Your Device Connection String>"
-    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
-
-    # Connect to IoT Hub
-    client.connect()
-
-    # Start receiving and processing device twin updates
-    while True:
-        twin = client.get_twin()
-        reported_properties = twin["reported"]
-
-        # Check if there are reported properties related to temperature and humidity
-        if "temperature" in reported_properties and "humidity" in reported_properties:
-            temperature = reported_properties["temperature"]
-            humidity = reported_properties["humidity"]
-            candump = convert_telemetry_to_candump(temperature, humidity)
-
-            # Print the converted telemetry data in candump format
-            print(candump)
-
-            # Split the candump string into can_id and data
-            can_id, can_data = candump.split("#")
-            can_data = [int(can_data[i:i+2], 16) for i in range(0, len(can_data), 2)]
-
-            # Send the CAN message
-            send_can_message(bus, int(can_id), can_data)
-
-        # Wait for some time before checking for device twin updates again
-        time.sleep(1)
-
-    # Disconnect from IoT Hub
-    client.disconnect()
-
-if __name__ == '__main__':
-    main(debug=True)
+# Disconnect from the IoT Hub
+client.disconnect()
