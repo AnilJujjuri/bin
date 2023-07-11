@@ -1,4 +1,6 @@
+import can
 import csv
+import os
 
 def receive_can_messages(bus):
     csv_file = 'received_can_messages.csv'
@@ -21,3 +23,10 @@ def receive_can_messages(bus):
             writer.writerow([timestamp, can_id, direction, dlc, data, channel])  # Write the data row
 
             print(f"Received CAN message: Timestamp: {timestamp}    ID: {can_id:08X}    {direction:<4}                DL: {dlc:<2}    {data:26}    Channel: {channel}")
+
+def main():
+    bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
+    receive_can_messages(bus)
+
+if __name__ == '__main__':
+    main()
