@@ -46,42 +46,34 @@ class CanController:
     def send_can_message(self, can_id, can_data):
         send_can_message(self.bus, can_id, can_data)
 
-def handle_device_twin_update(twin, can_controller):
-    reported_properties = twin.get("reported", {})
-    can_device_id = twin.get("can_device_id", "")
+def handle_device_twin_update(patch, can_controller):
+    desired_properties = patch.get("desired", {})
+    can_device_id = patch.get("can_device_id", "")
 
-    if not reported_properties:  # Skip if reported properties is empty
-        return
-
-    for can_device_id, telemetry_data in reported_properties.items():
+    if desired_properties and can_device_id:
+        telemetry_data = desired_properties.get(can_device_id)
         if isinstance(telemetry_data, dict):
             candump, can_data, can_id = convert_telemetry_to_candump(telemetry_data)
             if candump is not None and can_data is not None:
                 can_controller.send_can_message(can_id, can_data)
 
-def main(debug=False):
+def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
-    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
+    device_connection_string = "HostName=<your-iothub-hostname>;DeviceId=<your-device-id>;SharedAccessKey=<your-shared-access-key>"
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
     client.connect()
     can_controller = CanController(bus)
 
-    # Load previously sent messages from file
-    sent_messages = load_sent_messages()
+    last_processed_version = None
 
     while True:
         try:
-            twin = client.get_twin()
-            handle_device_twin_update(twin, can_controller)
-
-            # Check if a new message should be sent
-            if should_send_message(sent_messages):
-                can_controller.send_can_message(1001, [0])  # Example message, replace with your logic
-                sent_messages.append(generate_message_key())  # Append the sent message to the list
-                save_sent_messages(sent_messages)  # Save the updated list to the file
-
+            patch = client.receive_twin_desired_properties_patch()
+            if patch and patch.get("$version") != last_processed_version:
+                last_processed_version = patch.get("$version")
+                handle_device_twin_update(patch, can_controller)
         except Exception as e:
             print("Exception caught:", str(e))
             continue
@@ -90,22 +82,5 @@ def main(debug=False):
 
     client.disconnect()
 
-def load_sent_messages():
-    try:
-        with open("sent_messages.txt", "r") as file:
-            return file.read().splitlines()
-    except FileNotFoundError:
-        return []
-
-def save_sent_messages(sent_messages):
-    with open("sent_messages.txt", "w") as file:
-        file.write("\n".join(sent_messages))
-
-def should_send_message(sent_messages):
-    return generate_message_key() not in sent_messages
-
-def generate_message_key():
-    return time.strftime("%Y%m%d%H%M%S")
-
 if __name__ == '__main__':
-    main(debug=True)
+    main()
