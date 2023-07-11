@@ -55,15 +55,11 @@ class CanController:
             send_can_message(self.bus, can_id, can_data)
             reported_properties = {
                 "can_device_id": "my_can_device",
-                "reported": {
-                    "my_can_device": {
-                        "telemetry1": can_data[0],
-                        "telemetry2": can_data[1],
-                        "telemetry3": can_data[2]
-                    }
-                }
+                "telemetry1": can_data[0],
+                "telemetry2": can_data[1],
+                "telemetry3": can_data[2]
             }
-            self.client.send_message(Message(json.dumps(reported_properties)))
+            self.client.patch_twin_reported_properties(reported_properties)
 
 def handle_device_twin_update(patch, can_controller):
     reported_properties = patch.get("reported", {})
@@ -95,13 +91,13 @@ def listen_and_store_can_messages(bus):
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
-    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
+    device_connection_string = "HostName=<your-iothub-hostname>;DeviceId=<your-device-id>;SharedAccessKey=<your-shared-access-key>"
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
     can_controller = CanController(bus, client)
 
-    def twin_update_handler(update):
-        handle_device_twin_update(update, can_controller)
+    def twin_update_handler(patch):
+        handle_device_twin_update(patch, can_controller)
 
     client.connect()
     client.on_twin_desired_properties_patch_received = twin_update_handler
@@ -109,19 +105,15 @@ def main():
     listen_thread = threading.Thread(target=listen_and_store_can_messages, args=(bus,))
     listen_thread.start()
 
-    # Define the sample data to update the desired properties
+    # Define the sample data to update the reported properties
     sample_data = {
         "can_device_id": "my_can_device",
-        "desired": {
-            "my_can_device": {
-                "telemetry1": 42,
-                "telemetry2": 3.14,
-                "telemetry3": "value"
-            }
-        }
+        "telemetry1": 42,
+        "telemetry2": 3.14,
+        "telemetry3": "value"
     }
 
-    # Send the sample data to the desired twin
+    # Send the sample data to the reported twin
     client.patch_twin_reported_properties(sample_data)
 
     while True:
