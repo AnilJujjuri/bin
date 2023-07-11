@@ -6,10 +6,11 @@ def receive_can_messages(bus):
     csv_file = 'received_can_messages.csv'
     file_exists = os.path.isfile(csv_file)
     with open(csv_file, 'a+', newline='') as csvfile:
-        writer = csv.writer(csvfile)
+        fieldnames = ['Timestamp', 'ID', 'DLC', 'Data', 'Channel']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         if not file_exists:  # If the file doesn't exist, write the header
-            writer.writerow(['Timestamp', 'ID', 'DLC', 'Data', 'Channel'])  # Write the header row
+            writer.writeheader()
 
         while True:
             message = bus.recv()
@@ -19,7 +20,8 @@ def receive_can_messages(bus):
             data = ' '.join([f'{byte:02X}' for byte in message.data])
             channel = bus.channel_info
 
-            writer.writerow([timestamp, can_id, dlc, data, channel])  # Write the data row
+            writer.writerow({'Timestamp': timestamp, 'ID': can_id, 'DLC': dlc, 'Data': data, 'Channel': channel})
+            csvfile.flush()  # Flush the buffer to ensure immediate write to the file
 
             print(f"Received CAN message: Timestamp: {timestamp}    ID: {can_id:08X}    DL: {dlc:<2}    {data:26}    Channel: {channel}")
 
