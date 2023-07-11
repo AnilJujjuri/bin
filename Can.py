@@ -42,6 +42,9 @@ def receive_can_messages(bus):
 
             print(f"Received CAN message: {message}")
 
+            # Add the received CAN message to the existing data set
+            existing_data.add((can_id, can_data))
+
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
     receive_can_messages(bus)
