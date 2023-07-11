@@ -1,53 +1,98 @@
 from azure.iot.device import IoTHubDeviceClient
 import can
-import csv
+import time
+from dotenv import load_dotenv
+from pathlib import Path
 import os
 
-def receive_can_messages(bus):
-    csv_file = 'received_can_messages.csv'
-    file_exists = os.path.isfile(csv_file)
-    existing_data = set()
+dotenv_path = Path('Configuration.env')
+load_dotenv(dotenv_path=dotenv_path)
 
-    if file_exists:
-        with open(csv_file, 'r') as csvfile:
-            reader = csv.DictReader(csvfile)
-            fieldnames = reader.fieldnames
-            print(f"Field names in the CSV file: {fieldnames}")
-            for row in reader:
-                # Convert CAN_ID and CAN_Data to string for comparison
-                can_id = str(row['CAN_ID'])
-                can_data = str(row['CAN_Data'])
-                existing_data.add((can_id, can_data))
+def send_can_message(bus, can_id, data):
+    message = can.Message(arbitration_id=can_id, data=data)
+    bus.send(message)
 
-    with open(csv_file, 'a+', newline='') as csvfile:
-        fieldnames = ['Timestamp', 'CAN_ID', 'CAN_Data']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+def convert_telemetry_to_candump(telemetry_data):
+    candump = ""
+    can_data = []
+    can_id = 1001  # Default value
 
-        if not file_exists:
-            writer.writeheader()
+    for key, value in telemetry_data.items():
+        if key == "can_id":
+            if isinstance(value, int):
+                can_id = value
+            elif isinstance(value, str) and value.isdigit():
+                can_id = int(value)
+            continue
 
-        while True:
-            message = bus.recv()
-            can_id = str(message.arbitration_id)
-            can_data = str(message.data.hex())
+        if isinstance(value, int):
+            byte_value = value % 256
+        elif isinstance(value, float):
+            byte_value = int(value) % 256
+        elif isinstance(value, str):
+            try:
+                byte_value = int(value) % 256
+            except ValueError:
+                try:
+                    byte_value = int(float(value)) % 256
+                except ValueError:
+                    continue  # Skip this key-value pair if conversion is not possible
+        else:
+            continue  # Skip unsupported data types
 
-            if (can_id, can_data) in existing_data:
-                # Skip writing the data if it already exists
-                continue
+        can_data.append(byte_value)
+        candump += f"{key}_{byte_value}_"
 
-            timestamp = message.timestamp
+    return candump.rstrip("_"), can_data, can_id
 
-            writer.writerow({'Timestamp': timestamp, 'CAN_ID': can_id, 'CAN_Data': can_data})
-            csvfile.flush()
+class CanController:
+    def __init__(self, bus):
+        self.last_messages = {}
+        self.bus = bus
 
-            print(f"Received CAN message: {message}")
+    def send_can_message(self, can_id, can_data):
+        message_key = f"{can_id}_{can_data}"
+        if message_key not in self.last_messages:
+            self.last_messages[message_key] = True
+            send_can_message(self.bus, can_id, can_data)
 
-            # Add the received CAN message to the existing data set
-            existing_data.add((can_id, can_data))
+def handle_device_twin_update(twin, can_controller):
+    reported_properties = twin.get("reported", {})
+    can_device_id = twin.get("can_device_id", "")
+
+    if not reported_properties:  # Skip if reported properties is empty
+        return
+
+    for can_device_id, telemetry_data in reported_properties.items():
+        if isinstance(telemetry_data, dict):
+            candump, can_data, can_id = convert_telemetry_to_candump(telemetry_data)
+            if candump is not None and can_data is not None:
+                can_controller.send_can_message(can_id, can_data)
 
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
-    receive_can_messages(bus)
+
+    device_connection_string = os.environ.get('device_connection_string')
+    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+
+    client.connect()
+    retry_counter = 0
+    can_controller = CanController(bus)
+    while True:
+        try:
+            twin = client.get_twin()
+            handle_device_twin_update(twin, can_controller)
+            # Retry mechanism
+            if retry_counter < 3:
+                time.sleep(30)  # Wait for 20 seconds between retries
+                retry_counter += 1
+            else:
+                break  # Disconnect after the maximum number of retries
+        except Exception as e:
+            print("Exception caught:", str(e))
+            continue
+
+    client.disconnect()
 
 if __name__ == '__main__':
     main()
