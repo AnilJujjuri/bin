@@ -95,7 +95,7 @@ def listen_and_store_can_messages(bus):
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
-    device_connection_string = "HostName=<your-iothub-hostname>;DeviceId=<your-device-id>;SharedAccessKey=<your-shared-access-key>"
+    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
     can_controller = CanController(bus, client)
@@ -122,7 +122,7 @@ def main():
     }
 
     # Send the sample data to the desired twin
-    client.update_twin_properties(sample_data)
+    client.patch_twin_reported_properties(sample_data)
 
     while True:
         try:
