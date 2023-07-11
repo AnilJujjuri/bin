@@ -51,6 +51,19 @@ class CanController:
             self.last_message = message_key
             send_can_message(self.bus, can_id, can_data)
 
+def handle_device_twin_update(patch, can_controller):
+    reported_properties = patch.get("reported", {})
+    can_device_id = patch.get("can_device_id", "")
+
+    if not reported_properties:  # Skip if reported properties is empty
+        return
+
+    for can_device_id, telemetry_data in reported_properties.items():
+        if isinstance(telemetry_data, dict):
+            candump, can_data, can_id = convert_telemetry_to_candump(telemetry_data)
+            if candump is not None and can_data is not None:
+                can_controller.send_can_message(can_id, can_data)
+
 def receive_can_messages(bus):
     csv_file = 'received_can_messages.csv'
     file_exists = os.path.isfile(csv_file)
@@ -80,8 +93,8 @@ def main():
 
     can_controller = CanController(bus)
 
-    def twin_update_handler(update):
-        handle_device_twin_update(update, can_controller)
+    def twin_update_handler(patch):
+        handle_device_twin_update(patch, can_controller)
 
     client.connect()
     client.on_twin_desired_properties_patch_received = twin_update_handler
@@ -92,4 +105,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-['azure.iot.device.iothub.sync_handler_manager.HandlerManagerException: HANDLER (_on_twin_desired_properties_patch_received): Error during invocation\n']
