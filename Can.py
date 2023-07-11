@@ -92,3 +92,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+['azure.iot.device.iothub.sync_handler_manager.HandlerManagerException: HANDLER (_on_twin_desired_properties_patch_received): Error during invocation\n']
