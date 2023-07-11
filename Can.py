@@ -1,9 +1,8 @@
-from azure.iot.device import IoTHubDeviceClient, Message
+from azure.iot.device import IoTHubDeviceClient
 import can
 import csv
 import threading
 import time
-import json
 
 def send_can_message(bus, can_id, data):
     message = can.Message(arbitration_id=can_id, data=data)
@@ -43,23 +42,11 @@ def convert_telemetry_to_candump(telemetry_data):
     return candump.rstrip("_"), can_data, can_id
 
 class CanController:
-    def __init__(self, bus, client):
-        self.last_messages = {}
+    def __init__(self, bus):
         self.bus = bus
-        self.client = client
 
     def send_can_message(self, can_id, can_data):
-        message_key = f"{can_id}_{can_data}"
-        if message_key not in self.last_messages:
-            self.last_messages[message_key] = True
-            send_can_message(self.bus, can_id, can_data)
-            reported_properties = {
-                "can_device_id": "my_can_device",
-                "telemetry1": can_data[0],
-                "telemetry2": can_data[1],
-                "telemetry3": can_data[2]
-            }
-            self.client.patch_twin_reported_properties(reported_properties)
+        send_can_message(self.bus, can_id, can_data)
 
 def handle_device_twin_update(patch, can_controller):
     reported_properties = patch.get("reported", {})
@@ -75,10 +62,14 @@ def handle_device_twin_update(patch, can_controller):
                 can_controller.send_can_message(can_id, can_data)
 
 def listen_and_store_can_messages(bus):
-    with open('received_can_messages.csv', 'w', newline='') as csvfile:
+    with open('received_can_messages.csv', 'a+', newline='') as csvfile:
         fieldnames = ['Timestamp', 'CAN_ID', 'CAN_Data']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
+
+        # Check if the CSV file is empty
+        csvfile.seek(0)
+        if csvfile.read().strip() == '':
+            writer.writeheader()
 
         while True:
             message = bus.recv()
@@ -86,7 +77,18 @@ def listen_and_store_can_messages(bus):
             can_data = message.data
             timestamp = time.time()
 
-            writer.writerow({'Timestamp': timestamp, 'CAN_ID': can_id, 'CAN_Data': can_data.hex()})
+            # Check if the message is already present in the CSV file
+            csvfile.seek(0)
+            reader = csv.reader(csvfile)
+            is_duplicate = False
+            for row in reader:
+                if row[1] == str(can_id) and row[2] == can_data.hex():
+                    is_duplicate = True
+                    break
+
+            # Write the message to the CSV file if it is not a duplicate
+            if not is_duplicate:
+                writer.writerow({'Timestamp': timestamp, 'CAN_ID': can_id, 'CAN_Data': can_data.hex()})
 
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
@@ -94,7 +96,7 @@ def main():
     device_connection_string = "HostName=<your-iothub-hostname>;DeviceId=<your-device-id>;SharedAccessKey=<your-shared-access-key>"
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
-    can_controller = CanController(bus, client)
+    can_controller = CanController(bus)
 
     def twin_update_handler(patch):
         handle_device_twin_update(patch, can_controller)
@@ -104,17 +106,6 @@ def main():
 
     listen_thread = threading.Thread(target=listen_and_store_can_messages, args=(bus,))
     listen_thread.start()
-
-    # Define the sample data to update the reported properties
-    sample_data = {
-        "can_device_id": "my_can_device",
-        "telemetry1": 42,
-        "telemetry2": 3.14,
-        "telemetry3": "value"
-    }
-
-    # Send the sample data to the reported twin
-    client.patch_twin_reported_properties(sample_data)
 
     while True:
         try:
