@@ -1,33 +1,25 @@
-import can
-import csv
-import os
+# Use the official Python base image
+FROM python:3.8-slim
 
-def receive_can_messages(bus):
-    csv_file = 'received_can_messages.csv'
-    file_exists = os.path.isfile(csv_file)
-    with open(csv_file, 'a+', newline='') as csvfile:
-        fieldnames = ['Timestamp', 'ID', 'DLC', 'Data', 'Channel']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+# Set the working directory in the container
+WORKDIR /app
 
-        if not file_exists:  # If the file doesn't exist, write the header
-            writer.writeheader()
+# Install the vcan kernel module
+RUN apt-get update && \
+    apt-get install -y linux-modules-extra-$(uname -r)
 
-        while True:
-            message = bus.recv()
-            timestamp = message.timestamp
-            can_id = message.arbitration_id
-            dlc = message.dlc
-            data = ' '.join([f'{byte:02X}' for byte in message.data])
-            channel = bus.channel_info
+# Copy the Python requirements file
+COPY requirements.txt .
 
-            writer.writerow({'Timestamp': timestamp, 'ID': can_id, 'DLC': dlc, 'Data': data, 'Channel': channel})
-            csvfile.flush()  # Flush the buffer to ensure immediate write to the file
+# Install the Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-            print(f"Received CAN message: Timestamp: {timestamp}    ID: {can_id:08X}    DL: {dlc:<2}    {data:26}    Channel: {channel}")
+# Copy the code files into the container
+COPY rec.py .
+COPY main.py .
+COPY received_can_messages.csv .
 
-def main():
-    bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
-    receive_can_messages(bus)
-
-if __name__ == '__main__':
-    main()
+# Run modprobe to load the vcan module
+CMD modprobe vcan && \
+    python -u rec.py && \
+    python -u main.py
