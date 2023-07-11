@@ -1,7 +1,5 @@
 from azure.iot.device import IoTHubDeviceClient
 import can
-import csv
-import threading
 import time
 
 def send_can_message(bus, can_id, data):
@@ -43,14 +41,18 @@ def convert_telemetry_to_candump(telemetry_data):
 
 class CanController:
     def __init__(self, bus):
+        self.last_messages = {}
         self.bus = bus
 
     def send_can_message(self, can_id, can_data):
-        send_can_message(self.bus, can_id, can_data)
+        message_key = f"{can_id}_{can_data}"
+        if message_key not in self.last_messages:
+            self.last_messages[message_key] = True
+            send_can_message(self.bus, can_id, can_data)
 
-def handle_device_twin_update(patch, can_controller):
-    reported_properties = patch.get("reported", {})
-    can_device_id = patch.get("can_device_id", "")
+def handle_device_twin_update(twin, can_controller):
+    reported_properties = twin.get("reported", {})
+    can_device_id = twin.get("can_device_id", "")
 
     if not reported_properties:  # Skip if reported properties is empty
         return
@@ -61,57 +63,28 @@ def handle_device_twin_update(patch, can_controller):
             if candump is not None and can_data is not None:
                 can_controller.send_can_message(can_id, can_data)
 
-def listen_and_store_can_messages(bus):
-    with open('received_can_messages.csv', 'a+', newline='') as csvfile:
-        fieldnames = ['Timestamp', 'CAN_ID', 'CAN_Data']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-        # Check if the CSV file is empty
-        csvfile.seek(0)
-        if csvfile.read().strip() == '':
-            writer.writeheader()
-
-        while True:
-            message = bus.recv()
-            can_id = message.arbitration_id
-            can_data = message.data
-            timestamp = time.time()
-
-            # Check if the message is already present in the CSV file
-            csvfile.seek(0)
-            reader = csv.reader(csvfile)
-            is_duplicate = False
-            for row in reader:
-                if row[1] == str(can_id) and row[2] == can_data.hex():
-                    is_duplicate = True
-                    break
-
-            # Write the message to the CSV file if it is not a duplicate
-            if not is_duplicate:
-                writer.writerow({'Timestamp': timestamp, 'CAN_ID': can_id, 'CAN_Data': can_data.hex()})
-
 def main():
     bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
 
-    device_connection_string = "HostName=<your-iothub-hostname>;DeviceId=<your-device-id>;SharedAccessKey=<your-shared-access-key>"
+    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
-    can_controller = CanController(bus)
-
-    def twin_update_handler(patch):
-        handle_device_twin_update(patch, can_controller)
-
     client.connect()
-    client.on_twin_desired_properties_patch_received = twin_update_handler
-
-    listen_thread = threading.Thread(target=listen_and_store_can_messages, args=(bus,))
-    listen_thread.start()
-
+    retry_counter = 0
+    can_controller = CanController(bus)
     while True:
         try:
-            time.sleep(1)
-        except KeyboardInterrupt:
-            break
+            twin = client.get_twin()
+            handle_device_twin_update(twin, can_controller)
+            # Retry mechanism
+            if retry_counter < 3:
+                time.sleep(10)  # Wait for 20 seconds between retries
+                retry_counter += 1
+            else:
+                break  # Disconnect after the maximum number of retries
+        except Exception as e:
+            print("Exception caught:", str(e))
+            continue
 
     client.disconnect()
 
