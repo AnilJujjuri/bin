@@ -1,25 +1,11 @@
-# Use the official Python base image
-FROM python:3.8-slim
-
-# Set the working directory in the container
-WORKDIR /app
-
-# Install the vcan kernel module
-RUN apt-get update && \
-    apt-get install -y linux-modules-extra-$(uname -r)
-
-# Copy the Python requirements file
-COPY requirements.txt .
-
-# Install the Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the code files into the container
-COPY rec.py .
-COPY main.py .
-COPY received_can_messages.csv .
-
-# Run modprobe to load the vcan module
-CMD modprobe vcan && \
-    python -u rec.py && \
-    python -u main.py
+#6 7.126 Get:5 http://deb.debian.org/debian-security bookworm-security/main amd64 Packages [47.3 kB]
+#6 9.394 Fetched 9199 kB in 9s (1079 kB/s)
+#6 9.394 Reading package lists...
+#6 11.31 Reading package lists...
+#6 12.62 Building dependency tree...
+#6 12.92 Reading state information...
+#6 13.20 E: Unable to locate package linux-modules-extra-5.15.90.1-microsoft-standard-WSL2
+#6 13.20 E: Couldn't find any package by glob 'linux-modules-extra-5.15.90.1-microsoft-standard-WSL2'
+#6 13.20 E: Couldn't find any package by regex 'linux-modules-extra-5.15.90.1-microsoft-standard-WSL2'
+------
+executor failed running [/bin/sh -c apt-get update && apt-get install -y linux-modules-extra-$(uname -r)]: exit code: 100
