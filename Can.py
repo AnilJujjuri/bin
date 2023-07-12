@@ -9,3 +9,4 @@
 #6 13.20 E: Couldn't find any package by regex 'linux-modules-extra-5.15.90.1-microsoft-standard-WSL2'
 ------
 executor failed running [/bin/sh -c apt-get update && apt-get install -y linux-modules-extra-$(uname -r)]: exit code: 100
+ls /lib/modules/$(uname -r)/kernel/drivers/net/can
