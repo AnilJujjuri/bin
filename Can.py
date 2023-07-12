@@ -1,13 +1,45 @@
-#6 7.126 Get:5 http://deb.debian.org/debian-security bookworm-security/main amd64 Packages [47.3 kB]
-#6 9.394 Fetched 9199 kB in 9s (1079 kB/s)
-#6 9.394 Reading package lists...
-#6 11.31 Reading package lists...
-#6 12.62 Building dependency tree...
-#6 12.92 Reading state information...
-#6 13.20 E: Unable to locate package linux-modules-extra-5.15.90.1-microsoft-standard-WSL2
-#6 13.20 E: Couldn't find any package by glob 'linux-modules-extra-5.15.90.1-microsoft-standard-WSL2'
-#6 13.20 E: Couldn't find any package by regex 'linux-modules-extra-5.15.90.1-microsoft-standard-WSL2'
-------
-executor failed running [/bin/sh -c apt-get update && apt-get install -y linux-modules-extra-$(uname -r)]: exit code: 100
-ls /lib/modules/$(uname -r)/kernel/drivers/net/can
-COPY /lib/modules/<kernel-version>/kernel/drivers/net/can/vcan.ko /lib/modules/<kernel-version>/kernel/drivers/net/can/vcan.ko
+import can
+from azure.iot.device import IoTHubDeviceClient
+
+def send_to_iot_hub(data):
+    # Azure IoT Hub connection string
+    device_connection_string = "YOUR_DEVICE_CONNECTION_STRING"
+    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+    client.connect()
+
+    # Prepare the message payload
+    message = {
+        "data": data
+    }
+
+    # Send the message to Azure IoT Hub
+    client.send_message(message)
+
+    # Disconnect from Azure IoT Hub
+    client.disconnect()
+
+def listen_can_interface(channel):
+    bus = can.interface.Bus(channel=channel, bustype='socketcan_native')
+    while True:
+        message = bus.recv()
+        # Process the received CAN message
+        can_id = message.arbitration_id
+        can_data = message.data
+
+        # Convert CAN message to desired format
+        # Assuming the desired format is a dictionary with 'can_id' and 'can_data' fields
+        data = {
+            'can_id': can_id,
+            'can_data': can_data
+        }
+
+        # Send the data to Azure IoT Hub if it is in the desired format
+        if 'can_id' in data and 'can_data' in data:
+            send_to_iot_hub(data)
+
+def main():
+    can_interface_channel = 'vcan0'
+    listen_can_interface(can_interface_channel)
+
+if __name__ == '__main__':
+    main()
