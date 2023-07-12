@@ -1,28 +1,117 @@
 import can
 from azure.iot.device import IoTHubDeviceClient
 import json
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+can_bus_params = {
+    "channel": os.getenv("CHANNEL", "vcan0"),
+    "baudRate": int(os.getenv("BAUD_RATE")) if os.getenv("BAUD_RATE") else None,
+    "bitTiming": os.getenv("BIT_TIMING") if os.getenv("BIT_TIMING") else None,
+    "messageFiltering": os.getenv("MESSAGE_FILTERING") if os.getenv("MESSAGE_FILTERING") else None,
+    "errorHandling": os.getenv("ERROR_HANDLING") if os.getenv("ERROR_HANDLING") else None,
+    "transmissionModes": os.getenv("TRANSMISSION_MODES") if os.getenv("TRANSMISSION_MODES") else None,
+    "termination": os.getenv("TERMINATION") if os.getenv("TERMINATION") else None,
+    "filtersAndMasking": os.getenv("FILTERS_AND_MASKING") if os.getenv("FILTERS_AND_MASKING") else None
+}
+
+def handle_desired_properties(properties):
+    global can_bus_params
+    for param in can_bus_params:
+        if param in properties:
+            new_value = properties[param]
+            if new_value != can_bus_params[param]:
+                can_bus_params[param] = new_value
+                print(f"{param}: {new_value}")
+                # Handle specific logic for each parameter, e.g., reconfigure CAN interface
+                handle_parameter_change(param)
+
+def handle_parameter_change(param):
+    # Handle specific logic for each parameter change here
+    if param == "baudRate":
+        reconfigure_can_interface()
+    elif param == "bitTiming":
+        reconfigure_bit_timing()
+    elif param == "messageFiltering":
+        reconfigure_message_filtering()
+    elif param == "errorHandling":
+        reconfigure_error_handling()
+    elif param == "transmissionModes":
+        reconfigure_transmission_modes()
+    elif param == "termination":
+        reconfigure_termination()
+    elif param == "filtersAndMasking":
+        reconfigure_filters_and_masking()
+    # Add additional conditions to handle other parameters as required
+
+def reconfigure_can_interface():
+    global can_bus_params
+    # Disconnect from the current CAN bus channel
+    bus.shutdown()
+
+    # Reinitialize the CAN bus with the updated baud rate
+    bus = can.interface.Bus(channel=can_bus_params["channel"], bustype='socketcan', bitrate=can_bus_params["baudRate"])
+
+def reconfigure_bit_timing():
+    global can_bus_params
+    # Handle reconfiguring bit timing logic here
+    # Update the bit timing settings based on the new value
+
+def reconfigure_message_filtering():
+    global can_bus_params
+    # Handle reconfiguring message filtering logic here
+    # Update the message filtering settings based on the new value
+
+def reconfigure_error_handling():
+    global can_bus_params
+    # Handle reconfiguring error handling logic here
+    # Update the error handling settings based on the new value
+
+def reconfigure_transmission_modes():
+    global can_bus_params
+    # Handle reconfiguring transmission modes logic here
+    # Update the transmission modes settings based on the new value
+
+def reconfigure_termination():
+    global can_bus_params
+    # Handle reconfiguring termination logic here
+    # Update the termination settings based on the new value
+
+def reconfigure_filters_and_masking():
+    global can_bus_params
+    # Handle reconfiguring filters and masking logic here
+    # Update the filters and masking settings based on the new value
+
 def send_to_iot_hub(data):
     # Azure IoT Hub connection string
-    device_connection_string ="HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
+    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
     client.connect()
-    payload=json.dumps(data)
-    
-    # client.patch_twin_reported_properties(data)
-    # print(data)
-    # Send the message to Azure IoT Hub
-    client.send_message(payload)
-    print(payload)
+
+    # Update the reported properties in the device twin
+    twin_patch = {
+        "properties": {
+            "reported": {
+                "canParameters": data
+            }
+        }
+    }
+    client.patch_twin_reported_properties(json.dumps(twin_patch))
+
     # Disconnect from Azure IoT Hub
     client.disconnect()
 
 def listen_can_interface(channel):
-    bus = can.interface.Bus(channel=channel, bustype='socketcan')
+    global bus
+    bus = can.interface.Bus(channel=channel, bustype='socketcan', bitrate=can_bus_params["baudRate"])
     while True:
         message = bus.recv()
         # Process the received CAN message
         can_id = message.arbitration_id
-        can_data =list(message.data)
+        can_data = list(message.data)
 
         # Convert CAN message to desired format
         # Assuming the desired format is a dictionary with 'can_id' and 'can_data' fields
@@ -36,8 +125,13 @@ def listen_can_interface(channel):
             send_to_iot_hub(data)
 
 def main():
-    can_interface_channel = 'vcan0'
-    listen_can_interface(can_interface_channel)
+    global can_bus_params
+
+    # Initialize CAN bus parameters
+    channel = can_bus_params["channel"]
+
+    # Start listening to the CAN bus
+    listen_can_interface(channel)
 
 if __name__ == '__main__':
     main()
