@@ -10,3 +10,4 @@
 ------
 executor failed running [/bin/sh -c apt-get update && apt-get install -y linux-modules-extra-$(uname -r)]: exit code: 100
 ls /lib/modules/$(uname -r)/kernel/drivers/net/can
+COPY /lib/modules/<kernel-version>/kernel/drivers/net/can/vcan.ko /lib/modules/<kernel-version>/kernel/drivers/net/can/vcan.ko
