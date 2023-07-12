@@ -1,25 +1,14 @@
-from azure.iot.device import IoTHubDeviceClient
-
-# Define the connection string for your IoT Hub
-connection_string = "YOUR_IOT_HUB_CONNECTION_STRING"
-
-# Define the callback function to process the received message
-def message_received_callback(message):
-    print("Received message from IoT Hub:")
-    print(message.data)
-
-# Create an instance of the IoT Hub client
-client = IoTHubDeviceClient.create_from_connection_string(connection_string)
-
-# Connect to the IoT Hub
-client.connect()
-
-# Set the callback function for receiving messages
-client.on_message_received = message_received_callback
-
-# Keep the script running to continue receiving messages
-while True:
-    pass
-
-# Disconnect from the IoT Hub
-client.disconnect()
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
