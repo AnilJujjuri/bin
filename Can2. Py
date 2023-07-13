@@ -1,12 +1,15 @@
 import can
 from azure.iot.device import IoTHubDeviceClient
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 def send_to_iot_hub(data):
     # Azure IoT Hub connection string
     device_connection_string ="HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
     client.connect()
-
+    
     # Update the reported properties of the device twin
     twin_patch = {
         "properties": {
@@ -14,12 +17,12 @@ def send_to_iot_hub(data):
         }
     }
     client.patch_twin_reported_properties(twin_patch)
-
+    print(twin_patch)
     # Disconnect from Azure IoT Hub
     client.disconnect()
 
 def listen_can_interface(channel):
-    bus = can.interface.Bus(channel=channel, bustype='socketcan')
+    bus = can.interface.Bus(channel=channel, bustype='socketcan',bitrate=int(os.getenv("BAUD_RATE")) if os.getenv("BAUD_RATE") else 500000,bitTiming= os.getenv("BIT_TIMING") if os.getenv("BIT_TIMING") else "Custom",message_filtering= True,errorHandling= os.getenv("ERROR_HANDLING") if os.getenv("ERROR_HANDLING") else "Automatic")
     while True:
         message = bus.recv()
         # Process the received CAN message
@@ -40,11 +43,10 @@ def main():
     can_interface_channel = 'vcan0'
     reported_properties={
         
-        "can_id": 123, # Desired CAN ID
-        "baudrate": 500000,  # Desired baudrate
-        "bit_timing": 'Standard',  # Desired bit timing
-        "message_filtering": True, # Desired message filtering
-        "error_handling": 'Automatic'  # Desired error handling
+        "bit_timing": os.getenv("BIT_TIMING") if os.getenv("BIT_TIMING") else None,
+        "message_filtering": os.getenv("MESSAGE_FILTERING") if os.getenv("MESSAGE_FILTERING") else None,
+        "error_handling": os.getenv("ERROR_HANDLING") if os.getenv("ERROR_HANDLING") else None,
+        "baudrate":int(os.getenv("BAUD_RATE")) if os.getenv("BAUD_RATE") else None
     }
 
     # Connect to Azure IoT Hub
@@ -54,22 +56,19 @@ def main():
 
     # Get the reported properties from the device twin
     twin = client.get_twin()
-    desired_properties = twin["reported"]["properties"]["desired"]
+    desired_properties = twin["reported"]["can_properties"]["desired"]
     key_values=[]
 # Process the desired properties
     for key, value in desired_properties.items():
         key_values.append(key)
-        
-    
     print(key_values)
-    print(reported_properties.keys())
-    if desired_properties.keys() == key_values:
-        
-            print("hello") 
-      
+    desired_keys=list(reported_properties.keys())
+    print(desired_keys)
+    if desired_keys == key_values:
+        listen_can_interface(can_interface_channel)
     else:
         # Perform some other action if the desired properties don't match
-        print("Desired properties do not match the given parameters. Performing alternative action.",reported_properties.keys())
+        print("Desired properties do not match the given parameters. Performing alternative action.")
 
     
 
