@@ -1,34 +1,24 @@
 from azure.iot.device import IoTHubDeviceClient
 
 # Azure IoT Hub connection string
-device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
+device_connection_string = "HostName=your_iothub_hostname;DeviceId=your_device_id;SharedAccessKey=your_shared_access_key"
 
-def set_desired_properties(properties):
-    # Create the IoT Hub device client
-    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+# Create the IoT Hub device client
+client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
 
-    # Connect to the IoT Hub
-    client.connect()
+# Connect to the IoT Hub
+client.connect()
 
-    # Set the desired properties
-    twin_patch = {
-        "properties": {
-            "desired": properties
-        }
-    }
-    client.patch_twin_reported_properties(twin_patch)
+# Get the device twin
+twin = client.get_twin()
 
-    # Disconnect from the IoT Hub
-    client.disconnect()
+# Retrieve the desired properties from the twin
+desired_properties = twin["properties"]["desired"]
 
-# Example desired properties
-can_properties = {
-    "can_id": 123,
-    "baudrate": 500000,
-    "bit_timing": "Standard",
-    "message_filtering": True,
-    "error_handling": "Automatic"
-}
+# Process the desired properties
+for key, value in desired_properties.items():
+    print("Key:", key)
+    print("Value:", value)
 
-# Set the desired properties in the IoT Hub
-set_desired_properties(can_properties)
+# Disconnect from the IoT Hub
+client.disconnect()
