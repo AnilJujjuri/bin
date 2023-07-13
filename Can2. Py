@@ -1,30 +1,32 @@
-import logging
-
-import azure.functions as func
-
-
-def main(events: func.EventHubEvent, outputDocument: func.Out[func.Document]) -> None:
-    for event in events:
-        message = event.get_body().decode("utf-8")
-        logging.info(f"Received message: {message}")
-
-        # Store the message in Azure Cosmos DB
-        outputDocument.set(func.Document.from_json(message))
 import can
 from azure.iot.device import IoTHubDeviceClient
 import json
+
 def send_to_iot_hub(data):
     # Azure IoT Hub connection string
     device_connection_string ="HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
     client.connect()
-    #payload=json.dumps(data)
-    twin_patch ={"properties:":{"reported":data}}
-    client.patch_twin_reported_properties(twin_patch)
-    print(twin_patch)
-    # Send the message to Azure IoT Hub
-    #client.send_message(payload)
-    #print(payload)
+
+    # Get the twin properties from the IoT Hub
+    twin = client.get_twin()
+    desired_properties = twin.get("properties", {}).get("desired", {})
+
+    # Check if the desired properties match the given parameters
+    if all(param in desired_properties and desired_properties[param] == data[param] for param in data):
+        # Construct the twin reported properties payload
+        twin_patch = {
+            "properties": {
+                "reported": data
+            }
+        }
+
+        # Update the reported properties of the device twin
+        client.patch_twin_reported_properties(twin_patch)
+    else:
+        # Perform some other action if the desired properties don't match
+        print("Desired properties do not match the given parameters. Performing alternative action.")
+
     # Disconnect from Azure IoT Hub
     client.disconnect()
 
@@ -34,7 +36,7 @@ def listen_can_interface(channel):
         message = bus.recv()
         # Process the received CAN message
         can_id = message.arbitration_id
-        can_data =list(message.data)
+        can_data = list(message.data)
 
         # Convert CAN message to desired format
         # Assuming the desired format is a dictionary with 'can_id' and 'can_data' fields
@@ -43,13 +45,27 @@ def listen_can_interface(channel):
             'can_data': can_data
         }
 
-        # Send the data to Azure IoT Hub if it is in the desired format
-        if 'can_id' in data and 'can_data' in data:
-            send_to_iot_hub(data)
+        # Send the data to Azure IoT Hub if the desired properties match the given parameters
+        send_to_iot_hub(data)
 
 def main():
     can_interface_channel = 'vcan0'
-    listen_can_interface(can_interface_channel)
+
+    # Parameters to check against the desired properties
+    desired_properties = {
+        'can_id': 123,  # Desired CAN ID
+        'baudrate': 500000,  # Desired baudrate
+        'bit_timing': 'Standard',  # Desired bit timing
+        'message_filtering': True,  # Desired message filtering
+        'error_handling': 'Automatic'  # Desired error handling
+    }
+
+    # Check if desired properties exist in the given parameters
+    if all(param in desired_properties for param in desired_properties):
+        listen_can_interface(can_interface_channel)
+    else:
+        # Perform some other action if desired properties are missing
+        print("Desired properties are missing in the given parameters. Performing alternative action.")
 
 if __name__ == '__main__':
     main()
