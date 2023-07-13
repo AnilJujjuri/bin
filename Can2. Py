@@ -18,8 +18,22 @@ def send_to_iot_hub(data):
             "reported": data
         }
     }
-    client.patch_twin_reported_properties(twin_patch)
-    print(twin_patch)
+
+    retry_counter = 0
+    while True:
+        try:
+            client.patch_twin_reported_properties(twin_patch)
+            print(twin_patch)
+            break  # Exit the retry loop on successful update
+        except Exception as e:
+            print("Exception caught:", str(e))
+            # Retry mechanism
+            if retry_counter < 3:
+                time.sleep(10)  # Wait for 10 seconds between retries
+                retry_counter += 1
+            else:
+                break  # Exit the retry loop after the maximum number of retries
+
     # Disconnect from Azure IoT Hub
     client.disconnect()
 
@@ -75,9 +89,11 @@ def main():
             print(desired_keys)
             if desired_keys == key_values:
                 listen_can_interface(can_interface_channel)
+                break  # Exit the loop if listen_can_interface completes successfully
             else:
                 # Perform some other action if the desired properties don't match
                 print("Desired properties do not match the given parameters. Performing alternative action.")
+                break  # Exit the loop if alternative action is performed
         except Exception as e:
             print("Exception caught:", str(e))
             # Retry mechanism
@@ -85,7 +101,7 @@ def main():
                 time.sleep(10)  # Wait for 10 seconds between retries
                 retry_counter += 1
             else:
-                break  # Disconnect after the maximum number of retries
+                break  # Exit the loop after the maximum number of retries
 
     # Disconnect from Azure IoT Hub
     client.disconnect()
