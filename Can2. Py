@@ -3,7 +3,7 @@ from azure.iot.device import IoTHubDeviceClient
 
 def send_to_iot_hub(data):
     # Azure IoT Hub connection string
-    device_connection_string ="HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
+    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
     client.connect()
 
@@ -47,19 +47,19 @@ def main():
     }
 
     # Connect to Azure IoT Hub
+    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
     client.connect()
 
-    # Get the reported properties from the device twin
+    # Get the device twin
     twin = client.get_twin()
-    reported_properties = twin.get("properties", {}).get("reported", {})
 
-    # Check if the desired properties match the reported properties
-    if all(param in reported_properties and reported_properties[param] == desired_properties[param] for param in desired_properties):
+    # Check if the desired properties exist in the device twin
+    if "desired" in twin["properties"] and all(param in twin["properties"]["desired"] and twin["properties"]["desired"][param] == desired_properties[param] for param in desired_properties):
         # Start listening to the CAN interface
         listen_can_interface(can_interface_channel)
     else:
-        print("Desired properties do not match the reported properties. Performing alternative action.")
+        print("Desired properties do not match the input set. Performing alternative action.")
 
     # Disconnect from Azure IoT Hub
     client.disconnect()
