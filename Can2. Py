@@ -3,14 +3,15 @@ from azure.iot.device import IoTHubDeviceClient
 from dotenv import load_dotenv
 import os
 import time
-
 from dotenv import load_dotenv
 from pathlib import Path
 dotenv_path = Path('config.env')
 load_dotenv(dotenv_path=dotenv_path)
+
 def send_to_iot_hub(data):
     # Azure IoT Hub connection string
-    device_connection_string ="HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
+    device_connection_string=os.getenv("device_connection_string_endpoint")
+    #device_connection_string ="HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
     client.connect()
     
@@ -37,9 +38,8 @@ def send_to_iot_hub(data):
     client.disconnect()
 
 def listen_can_interface(channel):
-    bus = can.interface.Bus(channel=channel, bustype='socketcan',baudrate=int(os.getenv("baudrate")) if os.getenv("baudrate") else 500000,bitTiming= os.getenv("bit_timing") if os.getenv("bit_timing") else "Custom",message_filtering= True,errorHandling= os.getenv("errorHandling") if os.getenv("errorHandling") else "Automatic")
-    bit_timing=(os.getenv("bit_timing"))
-    print(f"bit_timing:{bit_timing}")
+    bus = can.interface.Bus(channel=channel, bustype='socketcan',baudrate=int(os.getenv("baudrate")) if os.getenv("baudrate") else 500000,bitTiming= os.getenv("bit_timing") if os.getenv("bit_timing") else "Custom",message_filtering= True,errorHandling= os.getenv("error_handling") if os.getenv("ERROR_HANDLING") else "Automatic")
+    
     while True:
         message = bus.recv()
         # Process the received CAN message
@@ -58,6 +58,7 @@ def listen_can_interface(channel):
 
 def main():
     can_interface_channel =  os.getenv("can_interface_channel")
+    
     reported_properties={
         
         "bit_timing": os.getenv("bit_timing") if os.getenv("bit_timing") else None,
@@ -67,6 +68,7 @@ def main():
     }
 
     # Connect to Azure IoT Hub
+    device_connection_string=os.getenv("device_connection_string_entrypoint")
     device_connection_string ="HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered1;SharedAccessKey=drZ5N5meBouUoqankHXxaKv/j5R2r6qadsmatKlPQY4="
     client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
     client.connect()
@@ -94,22 +96,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-Traceback (most recent call last):
-  File "/home/Machine1/connector/new.py", line 96, in <module>
-    main()
-  File "/home/Machine1/connector/new.py", line 85, in main
-    listen_can_interface(can_interface_channel)
-  File "/home/Machine1/connector/new.py", line 40, in listen_can_interface
-    bus = can.interface.Bus(channel=channel, bustype='socketcan',baudrate=int(os.getenv("BAUD_RATE")) if os.getenv("BAUD_RATE") else 500000,bitTiming= os.getenv("bit_timing") if os.getenv("bit_timing") else "Custom",message_filtering= True,errorHandling= os.getenv("ERROR_HANDLING") if os.getenv("ERROR_HANDLING") else "Automatic")
-  File "/home/Machine1/.local/lib/python3.8/site-packages/can/util.py", line 369, in wrapper
-    return f(*args, **kwargs)
-  File "/home/Machine1/.local/lib/python3.8/site-packages/can/interface.py", line 138, in __new__
-    bus = cls(channel, **kwargs)
-  File "/home/Machine1/.local/lib/python3.8/site-packages/can/interfaces/socketcan/socketcan.py", line 705, in __init__
-    bind_socket(self.socket, channel)
-  File "/home/Machine1/.local/lib/python3.8/site-packages/can/interfaces/socketcan/socketcan.py", line 512, in bind_socket
-    sock.bind((channel,))
-OSError: [Errno 19] No such device
-SocketcanBus was not properly shut down
+    
