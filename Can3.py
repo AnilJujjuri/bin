@@ -1,84 +1,172 @@
-from azure.iot.device import IoTHubDeviceClient
-import can
-import time
+const modbus = require('modbus-tcp-ip')
 
-def send_can_message(bus, can_id, data):
-    message = can.Message(arbitration_id=can_id, data=data)
-    bus.send(message)
-    print(message)
+let twin = null;
+let myedgeClient = null;
+let myMessage = null;
+async function collect(edgeClient, Message) {
+    // for (let index = 0; index < connection.length; index++) {
+    while (true) {
+        try {
+            console.log("Running")
+            let connection = await getConnection();
+            connection = connection.devices;
+            console.log(connection)
+            if (connection) {
+                for (const key in connection) {
+                    if (connection.hasOwnProperty(key)) {
+                        const element = connection[key];
 
-def convert_telemetry_to_candump(sensor_id, telemetry_data):
-    candump = f"{sensor_id}_"
-    can_data = []
+                        let telemetry = { "thingId": element.thingId, "deviceId": element.id, "message_type": "telemetry", "data": {} };
+                        try {
+                            // step 1 : connect to
+                            let device = modbus(element.connection.ipAddress, element.connection.port, element.connection.slaveId ? element.connection.slaveId : 1);
+                            // modbus.on('error', function (err) {
+                            //     console.log("Captured the close event")
+                            // });
+                            console.log("connected !");
 
-    for key, value in telemetry_data.items():
-        if isinstance(value, int):
-            byte_value = value % 256
-        elif isinstance(value, float):
-            byte_value = int(value) % 256
-        elif isinstance(value, str):
-            try:
-                byte_value = int(value) % 256
-            except ValueError:
-                try:
-                    byte_value = int(float(value)) % 256
-                except ValueError:
-                    continue  # Skip this key-value pair if conversion is not possible
-        else:
-            continue  # Skip unsupported data types
+                            for (const key in element.signals) {
+                                if (element.signals.hasOwnProperty(key)) {
+                                    const signal = element.signals[key];
+                                    console.log(signal.name)
+                                    let value = await device.read(GetAddress(signal.address, signal.length));
+                                    console.log(value)
+                                    telemetry.data[signal.name] = value;
+                                }
+                            }
 
-        can_data.append(byte_value)
-        candump += f"{key}_{byte_value}_"
+                            telemetry.ts = (Date.now() / 1000).toFixed(0);
+                            console.log(telemetry);
 
-    return candump.rstrip("_"), can_data
+                            try {
+                                // var message = telemetry.getBytes().toString('utf8');
+                                if (telemetry) {
+                                    var outputMsg = new Message(JSON.stringify(telemetry));
+                                    edgeClient.sendOutputEvent('modbustcpTelemetry', outputMsg, printResultFor('Sending received message'));
+                                }
+                            } catch (error) {
+                                console.log("Failed to send data to cloud -" + error);
+                            }
+                            // disconnecting
+                            device = null;
+                            console.log("done !");
+                        } catch (err) {
+                            console.log("An error has occured : ", err);
+                        }
+                        await timeout(element.interval);
+                    }
+                }
+            }
+        } catch (error) {
+            console.log("Error in communication/processing " + err)
+        }
+        await timeout(100);
+    }
+}
+// add this handler before emitting any events
+process.on('uncaughtException', function (err) {
+    console.log('Starting Data Aquistion Task');
+    collect(myedgeClient, myMessage);
+    console.log('UNCAUGHT EXCEPTION - keeping process alive:', err); // err.message is "foobar"
+});
 
-class CanController:
-    def __init__(self,bus):
-        self.last_messages = {}
-        self.bus=bus
+async function timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-    def send_can_message(self, can_id, can_data):
-        message_key = f"{can_id}_{can_data}"
-        if message_key not in self.last_messages:
-            self.last_messages[message_key] = True
-            send_can_message(self.bus, can_id, can_data)
+async function setConnection(twinObj, edgeClient, Message) {
+    console.log(twin)
+    myedgeClient = edgeClient;
+    myMessage = Message;
+    if (twin === null) {
+        twin = twinObj;//.properties.desired;
+        setTimeout(() => {
+            console.log('Starting Data Aquistion Task');
+            collect(edgeClient, Message);
+        }, 1000);
+    } else {
+        twin = twinObj;//.properties.desired;
+    }
+    console.log("Updated twin")
+    console.log(twinObj)
+    console.log(twin)
+}
 
-def handle_device_twin_update(twin, can_controller):
-    reported_properties = twin["reported"]
+async function getConnection() {
+    return twin;
+}
 
-    for sensor_id, telemetry_data in reported_properties.items():
-        if isinstance(telemetry_data, dict):
-            can_id_parts = sensor_id.split("_")
-            if len(can_id_parts) >= 2 and can_id_parts[1].isnumeric():
-                can_id = int(can_id_parts[1])
-                candump, can_data = convert_telemetry_to_candump(sensor_id, telemetry_data)
+// Helper function to print results in the console
+function printResultFor(op) {
+    return function printResult(err, res) {
+        if (err) {
+            console.log(op + ' error: ' + err.toString());
+        }
+        if (res) {
+            console.log(op + ' status: ' + res.constructor.name);
+        }
+    };
+}
 
-                can_controller.send_can_message(can_id, can_data)
+// FOR DEBUG PURPOSE ONLY
+// let obj = {
+//     'devices': {
+//         "1001": {
+//             id: '1001',
+//             type: 'modbus-tcp',
+//             thingId: '2001',
+//             interval: '10000',
+//             connection: {
+//                 ipAddress: '52.149.144.189',
+//                 port: '502',
+//                 slaveId: '1'
+//             },
+//             signals: {
+//                 "temperature": {
+//                     name: "temperature",
+//                     address: '30001',
+//                     length: '1',
+//                     unitId: '1',
+//                     interval: '1000'
+//                 },
+//                 "humidity": {
+//                     name: "humidity",
+//                     address: '30002',
+//                     length: '1',
+//                     unitId: '2',
+//                     interval: '1000'
+//                 }
+//             }
+//         }
+//     }
+// }
 
-def main():
-    bus = can.interface.Bus(channel='vcan0', bustype='socketcan')
+// setConnection(obj, null, null);
+function GetAddress(address, length) {
+    let fc = address.split('')[0];
+    let temp = address.slice(1);
+    let response = '';
+    switch (fc) {
+        case '1':
+            response = 'c' + temp;
+            break;
+            break;
+        case '2':
+            response = 'i' + temp;
+        case '3':
+            response = 'hr' + temp;
+            break;
+        case '4':
+            response = 'ir' + temp;
+            break;
+        default:
+        //TBD
+    }
+    if (Number(length) > 1) {
+        response = response + '-' + (Number(temp) + Number(length))
+    }
+    return response;
+}
 
-    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
-    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
+module.exports = { setConnection }
 
-    client.connect()
-    retry_counter = 0
-    can_controller = CanController(bus)
-    while True:
-        try:
-            twin = client.get_twin()
-            handle_device_twin_update(twin, can_controller)
-            # Retry mechanism
-            if retry_counter < 3:
-                time.sleep(20)  # Wait for 10 seconds between retries
-                retry_counter += 1
-            else:
-                break  # Disconnect after the maximum number of retries
-        except Exception as e:
-            print("Exception caught:", str(e))
-            continue
-
-    client.disconnect()
-
-if __name__ == '__main__':
-    main()
