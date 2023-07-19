@@ -1,3 +1,46 @@
-1 error occurred:
-	* starting WSL integration service: synchronising agents: synchronising agent list: checking if desired distros are responsive: 1 error occurred:
-	* running uname in "Ubuntu-22.04" distro: running WSL command "wsl.exe -d Ubuntu-22.04 uname" failed with output "Failed to attach disk 'C:\\Users\\40020507\\AppData\\Local\\Packages\\CanonicalGroupLimited.Ubuntu22.04LTS_79rhkp1fndgsc\\LocalState\\ext4.vhdx' to WSL2: The system cannot find the file specified. \r\nError code: Wsl/Service/CreateInstance/MountVhd/ERROR_FILE_NOT_FOUND\r\n": exit status 0xffffffff
+from pymodbus.client.sync import ModbusSerialClient as ModbusClient
+import paho.mqtt.client as mqtt
+
+# Modbus RTU Configuration
+modbus_port = '/dev/ttyUSB0'  # Replace with the appropriate serial port
+modbus_baudrate = 9600
+modbus_unit_id = 1
+
+# MQTT Configuration
+mqtt_broker = 'your_mqtt_broker_address'
+mqtt_topic = 'your_mqtt_topic'
+
+def read_modbus_data():
+    client = ModbusClient(method='rtu', port=modbus_port, baudrate=modbus_baudrate)
+    client.connect()
+    response = client.read_holding_registers(address=0, count=2, unit=modbus_unit_id)
+    client.close()
+    return response.registers
+
+def on_connect(client, userdata, flags, rc):
+    print("Connected to MQTT Broker with result code " + str(rc))
+
+def main():
+    # MQTT Setup
+    mqtt_client = mqtt.Client()
+    mqtt_client.on_connect = on_connect
+    mqtt_client.connect(mqtt_broker, 1883, 60)
+    mqtt_client.loop_start()
+
+    try:
+        while True:
+            data = read_modbus_data()
+
+            # Publish data to MQTT broker
+            mqtt_client.publish(mqtt_topic, str(data))
+
+            # Adjust the polling rate as needed
+            # (e.g., time.sleep(5) for a 5-second interval)
+            time.sleep(1)
+
+    except KeyboardInterrupt:
+        mqtt_client.loop_stop()
+        mqtt_client.disconnect()
+
+if __name__ == "__main__":
+    main()
