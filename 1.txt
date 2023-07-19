@@ -1,21 +1,23 @@
-from pymodbus.client.sync import ModbusSerialClient as ModbusClient
+import minimalmodbus
 import paho.mqtt.client as mqtt
+import time
 
 # Modbus RTU Configuration
 modbus_port = '/dev/ttyUSB0'  # Replace with the appropriate serial port
-modbus_baudrate = 9600
-modbus_unit_id = 1
+modbus_slave_address = 1  # Replace with the Modbus slave device address
+modbus_register_address = 0  # Replace with the starting register address
+modbus_register_count = 2  # Replace with the number of registers to read
 
 # MQTT Configuration
 mqtt_broker = 'your_mqtt_broker_address'
 mqtt_topic = 'your_mqtt_topic'
 
 def read_modbus_data():
-    client = ModbusClient(method='rtu', port=modbus_port, baudrate=modbus_baudrate)
-    client.connect()
-    response = client.read_holding_registers(address=0, count=2, unit=modbus_unit_id)
-    client.close()
-    return response.registers
+    instrument = minimalmodbus.Instrument(modbus_port, modbus_slave_address)
+    instrument.serial.baudrate = 9600  # Set the baud rate to match your Modbus setup
+    instrument.serial.timeout = 0.2  # Set the timeout as required
+    data = instrument.read_registers(modbus_register_address, modbus_register_count)
+    return data
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT Broker with result code " + str(rc))
