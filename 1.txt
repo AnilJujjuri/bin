@@ -5,26 +5,31 @@ import time
 # Modbus RTU Configuration
 modbus_port = 'COM2'  # Replace with the appropriate COM port for Modbus RTU
 modbus_slave_address = 1  # Replace with the Modbus slave device address
-modbus_register_address = 0  # Replace with the register address to write random data
+start_register_address = 0  # Replace with the starting register address
+num_registers = 10  # Replace with the number of consecutive registers to write
+polling_interval = 1  # Adjust the interval (in seconds) to send data
 
 def write_modbus_data():
     instrument = minimalmodbus.Instrument(modbus_port, modbus_slave_address)
     instrument.serial.baudrate = 9600  # Set the baud rate to match your Modbus setup
     instrument.serial.timeout = 0.2  # Set the timeout as required
 
-    # Generate random data (for example, a random integer between 0 and 100)
-    random_data = random.randint(0, 100)
+    # Generate random data for a range of registers
+    random_data = [random.randint(0, 100) for _ in range(num_registers)]
 
-    # Write random data to the Modbus register
-    instrument.write_register(modbus_register_address, random_data)
+    # Print the random data before writing to Modbus
+    print(f"Writing random data {random_data} to Modbus registers {start_register_address} to {start_register_address + num_registers - 1}")
+
+    # Write random data to the consecutive Modbus registers
+    instrument.write_registers(start_register_address, random_data)
 
 while True:
     try:
         # Write random data to diagslave
         write_modbus_data()
 
-        # Adjust the polling rate as needed
-        time.sleep(1)
+        # Wait for the next interval
+        time.sleep(polling_interval)
 
     except KeyboardInterrupt:
         break
