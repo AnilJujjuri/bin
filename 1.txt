@@ -1,48 +1,30 @@
 import minimalmodbus
-import paho.mqtt.client as mqtt
+import random
 import time
 
 # Modbus RTU Configuration
-modbus_port = '/dev/ttyUSB0'  # Replace with the appropriate serial port
+modbus_port = 'COM2'  # Replace with the appropriate COM port for Modbus RTU
 modbus_slave_address = 1  # Replace with the Modbus slave device address
-modbus_register_address = 0  # Replace with the starting register address
-modbus_register_count = 2  # Replace with the number of registers to read
+modbus_register_address = 0  # Replace with the register address to write random data
 
-# MQTT Configuration
-mqtt_broker = 'your_mqtt_broker_address'
-mqtt_topic = 'your_mqtt_topic'
-
-def read_modbus_data():
+def write_modbus_data():
     instrument = minimalmodbus.Instrument(modbus_port, modbus_slave_address)
     instrument.serial.baudrate = 9600  # Set the baud rate to match your Modbus setup
     instrument.serial.timeout = 0.2  # Set the timeout as required
-    data = instrument.read_registers(modbus_register_address, modbus_register_count)
-    return data
 
-def on_connect(client, userdata, flags, rc):
-    print("Connected to MQTT Broker with result code " + str(rc))
+    # Generate random data (for example, a random integer between 0 and 100)
+    random_data = random.randint(0, 100)
 
-def main():
-    # MQTT Setup
-    mqtt_client = mqtt.Client()
-    mqtt_client.on_connect = on_connect
-    mqtt_client.connect(mqtt_broker, 1883, 60)
-    mqtt_client.loop_start()
+    # Write random data to the Modbus register
+    instrument.write_register(modbus_register_address, random_data)
 
+while True:
     try:
-        while True:
-            data = read_modbus_data()
+        # Write random data to diagslave
+        write_modbus_data()
 
-            # Publish data to MQTT broker
-            mqtt_client.publish(mqtt_topic, str(data))
-
-            # Adjust the polling rate as needed
-            # (e.g., time.sleep(5) for a 5-second interval)
-            time.sleep(1)
+        # Adjust the polling rate as needed
+        time.sleep(1)
 
     except KeyboardInterrupt:
-        mqtt_client.loop_stop()
-        mqtt_client.disconnect()
-
-if __name__ == "__main__":
-    main()
+        break
