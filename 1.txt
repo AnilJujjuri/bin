@@ -1,106 +1,19 @@
-import minimalmodbus
-import time
-import random
-from azure.iot.device import IoTHubDeviceClient, Message
-scaling_factor=100
+# socket_server.py
+import serial
+import socket
 
+# Replace 'COM1' with the appropriate COM port name
+ser = serial.Serial('COM1', baudrate=9600)
 
-def send_telemetry_to_iot_hub(telemetry_data):
-    device_connection_string = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=nodered;SharedAccessKey=mOeGufRBpvjmFut51ghJ0gjmWZDR8BHN1WWJtdsrBY4="
-    client = IoTHubDeviceClient.create_from_connection_string(device_connection_string)
-    client.connect()
-    temperature = telemetry_data["data"]["temperature"] / scaling_factor
-    humidity = telemetry_data["data"]["humidity"] / scaling_factor
+# Create a socket server
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind(('0.0.0.0', 12345))
+server_socket.listen(1)
 
-    # Update the telemetry data with the original floating-point values
-    telemetry_data["data"]["temperature"] = temperature
-    telemetry_data["data"]["humidity"] = humidity
+print("Socket server is listening...")
+conn, addr = server_socket.accept()
+print("Connection established:", addr)
 
-    # Update the reported properties of the device twin
-    twin_patch = {
-
-            "reported": telemetry_data
-
-    }
-    retry_counter = 0
-    while True:
-        try:
-            client.patch_twin_reported_properties(twin_patch)
-            print(twin_patch)
-            # Disconnect from Azure IoT Hub
-            break
-        except Exception as e:
-            print("exception caught:", str(e))
-            if retry_counter < 3:
-                time.sleep(30)  # Wait for 20 seconds between retries
-                retry_counter += 1
-            else:
-                break
-    client.disconnect()
-
-def collect_data(modbus_client):
-    try:
-        # Replace 'temperature' with the appropriate signal name in Diagslave
-        temperature_address = 0x0000
-        temperature_value = modbus_client.read_register(temperature_address, functioncode=3, signed=True)
-
-        # Replace 'humidity' with the appropriate signal name in Diagslave
-        humidity_address = 0x0001
-        humidity_value = modbus_client.read_register(humidity_address, functioncode=3, signed=True)
-
-
-         # Replace with the actual thing ID of the Modbus RTU device
-
-        telemetry = {
-
-            "message_type": "telemetry",
-            "data": {
-                "temperature": temperature_value,
-                "humidity": humidity_value
-            },
-            "ts": int(time.time())
-        }
-        send_telemetry_to_iot_hub(telemetry)
-
-
-    except Exception as e:
-        print("An error has occurred:", e)
-
-
-def generate_random_data(modbus_client, address):
-    # Generate random values for the Modbus registers
-    random_value = random.uniform(0.0, 100.0)  # Replace the range as per your requirement
-    scaled_value = int(random_value * scaling_factor)
-    modbus_client.write_register(address, scaled_value, functioncode=6)
-    
-
-
-if __name__ == "__main__":
-    try:
-        # Replace 'COM1' with the appropriate COM port name where Diagslave is running
-        com_port = 'COM1'
-        slave_id = 1  # Replace with the actual slave ID used in Diagslave
-        baud_rate = 9600  # Replace with the appropriate baud rate
-        timeout = 1  # Replace with the desired timeout value
-
-        modbus_client = minimalmodbus.Instrument(com_port, slave_id)
-        modbus_client.serial.baudrate = baud_rate
-        modbus_client.serial.timeout = timeout
-        modbus_client.serial.parity = minimalmodbus.serial.PARITY_NONE
-        modbus_client.serial.stopbits = 1
-        modbus_client.serial.bytesize = 8
-        modbus_client.debug = False  # Set to True for debugging
-
-        print(f"Connected to Diagslave over Modbus RTU on {com_port}!")
-
-        while True:
-            collect_data(modbus_client)
-
-            # Replace 'temperature' and 'humidity' addresses with the appropriate addresses in Diagslave
-            generate_random_data(modbus_client, address=0x0000)
-            generate_random_data(modbus_client, address=0x0001)
-
-            time.sleep(1)
-
-    except Exception as e:
-        print("Error:", e)
+while True:
+    data = ser.readline()
+    conn.sendall(data)
