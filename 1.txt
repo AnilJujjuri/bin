@@ -72,7 +72,7 @@ def generate_random_data(modbus_client, address):
     random_value = random.uniform(0.0, 100.0)  # Replace the range as per your requirement
     scaled_value = int(random_value * scaling_factor)
     modbus_client.write_register(address, scaled_value, functioncode=6)
-    print(random_value)
+    
 
 
 if __name__ == "__main__":
