@@ -1,19 +1,17 @@
-# socket_server.py
-import serial
-import socket
+# Use the official Python image for Windows
+FROM python:3.9-windowsservercore
 
-# Replace 'COM1' with the appropriate COM port name
-ser = serial.Serial('COM1', baudrate=9600)
+# Set the working directory inside the container
+WORKDIR /app
 
-# Create a socket server
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind(('0.0.0.0', 12345))
-server_socket.listen(1)
+# Copy the Python script and config.env file into the container
+COPY script.py config.env ./
 
-print("Socket server is listening...")
-conn, addr = server_socket.accept()
-print("Connection established:", addr)
+# Install required Python packages
+RUN pip install python-dotenv minimalmodbus azure-iot-device
 
-while True:
-    data = ser.readline()
-    conn.sendall(data)
+# Set the environment variable for the config file
+ENV DOTENV_PATH=config.env
+
+# Start the Python script
+CMD ["python", "script.py"]
