@@ -17,3 +17,4 @@
 2023-07-31 13:54:22   File "/usr/local/lib/python3.9/site-packages/serial/serialposix.py", line 401, in _reconfigure_port
 2023-07-31 13:54:22     raise SerialException("Could not configure port: {}".format(msg))
 2023-07-31 13:54:22 serial.serialutil.SerialException: Could not configure port: (5, 'Input/output error')
+lrwxrwxrwx 1 root root 10 Jul 31 12:53 /dev/ttyS1 -> /dev/pts/9
