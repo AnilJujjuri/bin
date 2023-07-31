@@ -1,90 +1,17 @@
-import time
-import serial
-import minimalmodbus
-import random
-import os
-from azure.iot.device import IoTHubModuleClient
-from azure.iot.device import IoTHubDeviceClient, Message
-from pathlib import Path
+# Use the official Python image as the base image
+FROM python:3.9-slim
 
-from dotenv import load_dotenv
+# Set the working directory in the container
+WORKDIR /app
 
-dotenv_path = Path('config.env')
-load_dotenv(dotenv_path=dotenv_path)
-# Azure IoT Hub connection string
-CONNECTION_STRING = os.getenv('device_connection_string')
+# Copy the Python script and config.env file into the container
+COPY script.py /app/
+COPY config.env /app/
 
-def send_to_iothub(data):
-    try:
-        module_client = IoTHubModuleClient.create_from_connection_string(CONNECTION_STRING)
-        module_client.connect()
-        print("Connected to Azure IoT Hub")
-        twin={"properties":data}
-        module_client.patch_twin_reported_properties(twin)
-        # module_client.send_message_to_output(data, "output1")
-        print("Message sent to IoT Hub")
+# Install required Python packages
+RUN pip install azure-iot-device
+RUN pip install minimalmodbus
+RUN pip install python-dotenv
 
-        module_client.disconnect()
-        print("Disconnected from Azure IoT Hub")
-    except Exception as e:
-        print("Error sending data to IoT Hub:", str(e))
-
-
-# Simulated Modbus device address (unit ID)
-SIMULATOR_UNIT_ID = 1
-
-def generate_random_data(modbus_client, address):
-    random_value = random.uniform(0.0, 100.0)  # Replace the range as per your requirement
-    scaled_value = int(random_value * 1)
-    modbus_client.write_register(address, scaled_value, functioncode=6)
-    print(random_value)
-
-
-def collect_and_send_data(modbus_client):
-    try:
-        energy_consumption_address = 0x0000
-        energy_consumption_value = modbus_client.read_register(energy_consumption_address, functioncode=3, signed=True)
-
-        voltage_address = 0x0001
-        voltage_value = modbus_client.read_register(voltage_address, functioncode=3, signed=True)
-
-        current_address = 0x0002
-        current_value = modbus_client.read_register(current_address, functioncode=3, signed=True)
-
-        power_factor_address = 0x0003
-        power_factor_value = modbus_client.read_register(power_factor_address, functioncode=3, signed=True)
-
-        telemetry = {
-            "message_type": "telemetry",
-            "data": {
-                "energy_consumption":energy_consumption_value ,
-                "voltage": voltage_value,
-                "current":current_value,
-                "power":power_factor_value,
-            },
-            "ts": int(time.time())
-        }
-        # Send telemetry data to IoT Hub
-        send_to_iothub(telemetry)
-    except Exception as e:
-        print("An error has occurred:", e)
-
-if __name__ == "__main__":
-    # Create a Modbus instrument instance for the simulator
-    rs485 = minimalmodbus.Instrument(os.getenv('com_port'), SIMULATOR_UNIT_ID)
-    rs485.serial.baudrate = os.getenv('baud_rate')
-    rs485.serial.bytesize = int(os.getenv('bytesize'))
-    rs485.serial.parity = minimalmodbus.serial.PARITY_NONE
-    rs485.serial.stopbits = int(os.getenv('stopbits'))
-    rs485.serial.timeout = int(os.getenv('timeout'))
-    rs485.debug = False
-    rs485.mode = minimalmodbus.MODE_RTU
-    try:
-        while True:
-            collect_and_send_data(rs485)
-            generate_random_data(rs485, address=0x0000)
-            generate_random_data(rs485, address=0x0001)
-            generate_random_data(rs485, address=0x0002)
-            generate_random_data(rs485, address=0x0003)
-    except KeyboardInterrupt:
-        print("Simulation stopped.")
+# Run the Python script when the container starts
+CMD ["python", "script.py"]
