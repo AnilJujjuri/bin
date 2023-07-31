@@ -1,17 +1,17 @@
-# Use the official Python image as the base image
-FROM python:3.9-slim
-
-# Set the working directory in the container
-WORKDIR /app
-
-# Copy the Python script and config.env file into the container
-COPY script.py /app/
-COPY config.env /app/
-
-# Install required Python packages
-RUN pip install azure-iot-device
-RUN pip install minimalmodbus
-RUN pip install python-dotenv
-
-# Run the Python script when the container starts
-CMD ["python", "script.py"]
+2023-07-31 13:35:13 Traceback (most recent call last):
+2023-07-31 13:35:13   File "/usr/local/lib/python3.9/site-packages/serial/serialposix.py", line 322, in open
+2023-07-31 13:35:13     self.fd = os.open(self.portstr, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
+2023-07-31 13:35:13 FileNotFoundError: [Errno 2] No such file or directory: '/dev/ttyS1'
+2023-07-31 13:35:13 
+2023-07-31 13:35:13 During handling of the above exception, another exception occurred:
+2023-07-31 13:35:13 
+2023-07-31 13:35:13 Traceback (most recent call last):
+2023-07-31 13:35:13   File "/app/main.py", line 74, in <module>
+2023-07-31 13:35:13     rs485 = minimalmodbus.Instrument(os.getenv('com_port'), SIMULATOR_UNIT_ID)
+2023-07-31 13:35:13   File "/usr/local/lib/python3.9/site-packages/minimalmodbus.py", line 225, in __init__
+2023-07-31 13:35:13     self.serial = _serialports[port] = serial.Serial(
+2023-07-31 13:35:13   File "/usr/local/lib/python3.9/site-packages/serial/serialutil.py", line 244, in __init__
+2023-07-31 13:35:13     self.open()
+2023-07-31 13:35:13   File "/usr/local/lib/python3.9/site-packages/serial/serialposix.py", line 325, in open
+2023-07-31 13:35:13     raise SerialException(msg.errno, "could not open port {}: {}".format(self._port, msg))
+2023-07-31 13:35:13 serial.serialutil.SerialException: [Errno 2] could not open port /dev/ttyS1: [Errno 2] No such file or directory: '/dev/ttyS1'
