@@ -1,21 +1,75 @@
-2023-07-31 13:54:22 Traceback (most recent call last):
-2023-07-31 13:54:22   File "/usr/local/lib/python3.9/site-packages/serial/serialposix.py", line 398, in _reconfigure_port
-2023-07-31 13:54:22     orig_attr = termios.tcgetattr(self.fd)
-2023-07-31 13:54:22 termios.error: (5, 'Input/output error')
-2023-07-31 13:54:22 
-2023-07-31 13:54:22 During handling of the above exception, another exception occurred:
-2023-07-31 13:54:22 
-2023-07-31 13:54:22 Traceback (most recent call last):
-2023-07-31 13:54:22   File "/app/main.py", line 74, in <module>
-2023-07-31 13:54:22     rs485 = minimalmodbus.Instrument(os.getenv('com_port'), SIMULATOR_UNIT_ID)
-2023-07-31 13:54:22   File "/usr/local/lib/python3.9/site-packages/minimalmodbus.py", line 225, in __init__
-2023-07-31 13:54:22     self.serial = _serialports[port] = serial.Serial(
-2023-07-31 13:54:22   File "/usr/local/lib/python3.9/site-packages/serial/serialutil.py", line 244, in __init__
-2023-07-31 13:54:22     self.open()
-2023-07-31 13:54:22   File "/usr/local/lib/python3.9/site-packages/serial/serialposix.py", line 332, in open
-2023-07-31 13:54:22     self._reconfigure_port(force_update=True)
-2023-07-31 13:54:22   File "/usr/local/lib/python3.9/site-packages/serial/serialposix.py", line 401, in _reconfigure_port
-2023-07-31 13:54:22     raise SerialException("Could not configure port: {}".format(msg))
-2023-07-31 13:54:22 serial.serialutil.SerialException: Could not configure port: (5, 'Input/output error')
-lrwxrwxrwx 1 root root 10 Jul 31 12:53 /dev/ttyS1 -> /dev/pts/9
-sudo x86_64-linux-gnu/diagslave -m rtu /dev/ttyS0
+import time
+from opcua import Client
+from azure.iot.device import IoTHubModuleClient
+
+# OPC UA connection settings
+endpoint_url = "opc.tcp://OPCUA.nabuookbe4aezb0isbgvv0tfab.cwx.internal.cloudapp.net:53530/OPCUA/SimulationServer"
+
+# Telemetry collection interval in seconds
+telemetry_interval = 1
+
+
+# Function to collect telemetry data from OPC UA server
+def collect_telemetry(client, node_ids):
+    client.connect()
+    print("Connected!")
+
+    try:
+        while True:
+
+            # Collect telemetry data for each node
+            telemetry_data = {}
+            for node_id in node_ids:
+                node = client.get_node(node_id)
+                value = node.get_value()
+                telemetry_data[node_id] = value
+                properties = node.get_properties()
+                if properties:
+                    for prop in properties:
+                        prop_name = prop.get_browse_name().to_string().split(":")[-1]
+                        prop_value = prop.get_value()
+                        telemetry_data[prop_name] = prop_value
+
+            # Print telemetry data to the console
+            # print("Telemetry Data:", telemetry_data)
+            send_to_iothub(telemetry_data)
+            # Process telemetry data here (e.g., send to cloud)
+
+            time.sleep(telemetry_interval)
+    except KeyboardInterrupt:
+        print("Telemetry collection stopped.")
+    finally:
+        client.disconnect()
+        print("Disconnected!")
+def send_to_iothub(telemtry_data):
+    CONNECTION_STRING = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=menderclient;SharedAccessKey=Sjr8fBZiUYQwksGYpyzlySO8WrnqkkartEbfTQhlo68="
+    try:
+        module_client = IoTHubModuleClient.create_from_connection_string(CONNECTION_STRING)
+        module_client.connect()
+        print("Connected to Azure IoT Hub")
+        twin={"properties":telemtry_data}
+        module_client.patch_twin_reported_properties(twin)
+        # module_client.send_message_to_output(data, "output1")
+        print("Message sent to IoT Hub",twin)
+
+        module_client.disconnect()
+        print("Disconnected from Azure IoT Hub")
+    except Exception as e:
+        print("Error sending data to IoT Hub:", str(e))
+if __name__ == "__main__":
+    # Define OPC UA nodes to read data from
+    # Replace the node_ids with the actual node ids you want to read from
+    node_ids = [
+        "ns=3;i=1003",
+
+    ]
+
+    # Create OPC UA client
+    client = Client(endpoint_url)
+
+    try:
+        # Start telemetry data collection
+        collect_telemetry(client, node_ids)
+
+    except KeyboardInterrupt:
+        print("Telemetry collection stopped.")
