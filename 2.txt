@@ -1,4 +1,6 @@
 from azure.iot.device import IoTHubModuleClient, Message
+from azure.iot.device.iothub.aio import IoTHubModuleClient
+
 import asyncio
 import connector
 
@@ -8,7 +10,7 @@ async def on_twin_desired_properties_update(patch):
     if patch:
         devices = patch
         def set_connection_callback():
-            connector.set_connection(devices, client, Message)
+            connector.set_connection(devices, module_client, Message)
         module_client.schedule_method("setConnection", set_connection_callback)
 
 async def main():
