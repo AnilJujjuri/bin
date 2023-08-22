@@ -1,75 +1,173 @@
-import time
-from opcua import Client
-from azure.iot.device import IoTHubModuleClient
+const modbus = require('modbus-tcp-ip')
 
-# OPC UA connection settings
-endpoint_url = "opc.tcp://OPCUA.nabuookbe4aezb0isbgvv0tfab.cwx.internal.cloudapp.net:53530/OPCUA/SimulationServer"
+let twin = null;
+let myedgeClient = null;
+let myMessage = null;
+async function collect(edgeClient, Message) {
+    // for (let index = 0; index < connection.length; index++) {
+    while (true) {
+        while (true) {
+            try {
+                console.log("Running")
+                let connection = await getConnection();
+                connection = connection.devices;
+                console.log(connection)
+                if (connection) {
+                    for (const key in connection) {
+                        if (connection.hasOwnProperty(key)) {
+                            const element = connection[key];
 
-# Telemetry collection interval in seconds
-telemetry_interval = 1
+                            let telemetry = { "thingId": element.thingId, "deviceId": element.id, "message_type": "telemetry", "data": {} };
+                            try {
+                                // step 1 : connect to
+                                let device = modbus(element.connection.ipAddress, element.connection.port, element.connection.slaveId ? element.connection.slaveId : 1);
+                                // modbus.on('error', function (err) {
+                                //     console.log("Captured the close event")
+                                // });
+                                console.log("connected !");
 
+                                for (const key in element.signals) {
+                                    if (element.signals.hasOwnProperty(key)) {
+                                        const signal = element.signals[key];
+                                        console.log(signal.name)
+                                        let value = await device.read(GetAddress(signal.address, signal.length));
+                                        console.log(value)
+                                        telemetry.data[signal.name] = value;
+                                    }
+                                }
 
-# Function to collect telemetry data from OPC UA server
-def collect_telemetry(client, node_ids):
-    client.connect()
-    print("Connected!")
+                                telemetry.ts = (Date.now() / 1000).toFixed(0);
+                                console.log(telemetry);
 
-    try:
-        while True:
+                                try {
+                                    // var message = telemetry.getBytes().toString('utf8');
+                                    if (telemetry) {
+                                        var outputMsg = new Message(JSON.stringify(telemetry));
+                                        edgeClient.sendOutputEvent('modbustcpTelemetry', outputMsg, printResultFor('Sending received message'));
+                                    }
+                                } catch (error) {
+                                    console.log("Failed to send data to cloud -" + error);
+                                }
+                                // disconnecting
+                                device = null;
+                                console.log("done !");
+                            } catch (err) {
+                                console.log("An error has occured : ", err);
+                            }
+                            await timeout(element.interval);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log("Error in communication/processing " + err)
+            }
+            await timeout(5000);
+        }
+    }
+}
+// add this handler before emitting any events
+process.on('uncaughtException', function (err) {
+    console.log('Starting Data Aquistion Task');
+    collect(myedgeClient, myMessage);
+    console.log('UNCAUGHT EXCEPTION - keeping process alive:', err); // err.message is "foobar"
+});
 
-            # Collect telemetry data for each node
-            telemetry_data = {}
-            for node_id in node_ids:
-                node = client.get_node(node_id)
-                value = node.get_value()
-                telemetry_data[node_id] = value
-                properties = node.get_properties()
-                if properties:
-                    for prop in properties:
-                        prop_name = prop.get_browse_name().to_string().split(":")[-1]
-                        prop_value = prop.get_value()
-                        telemetry_data[prop_name] = prop_value
+async function timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-            # Print telemetry data to the console
-            # print("Telemetry Data:", telemetry_data)
-            send_to_iothub(telemetry_data)
-            # Process telemetry data here (e.g., send to cloud)
+async function setConnection(twinObj, edgeClient, Message) {
+    console.log(twin)
+    myedgeClient = edgeClient;
+    myMessage = Message;
+    if (twin === null) {
+        twin = twinObj;//.properties.desired;
+        setTimeout(() => {
+            console.log('Starting Data Aquistion Task');
+            collect(edgeClient, Message);
+        }, 1000);
+    } else {
+        twin = twinObj;//.properties.desired;
+    }
+    console.log("Updated twin")
+    console.log(twinObj)
+    console.log(twin)
+}
 
-            time.sleep(telemetry_interval)
-    except KeyboardInterrupt:
-        print("Telemetry collection stopped.")
-    finally:
-        client.disconnect()
-        print("Disconnected!")
-def send_to_iothub(telemtry_data):
-    CONNECTION_STRING = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=menderclient;SharedAccessKey=Sjr8fBZiUYQwksGYpyzlySO8WrnqkkartEbfTQhlo68="
-    try:
-        module_client = IoTHubModuleClient.create_from_connection_string(CONNECTION_STRING)
-        module_client.connect()
-        print("Connected to Azure IoT Hub")
-        twin={"properties":telemtry_data}
-        module_client.patch_twin_reported_properties(twin)
-        # module_client.send_message_to_output(data, "output1")
-        print("Message sent to IoT Hub",twin)
+async function getConnection() {
+    return twin;
+}
 
-        module_client.disconnect()
-        print("Disconnected from Azure IoT Hub")
-    except Exception as e:
-        print("Error sending data to IoT Hub:", str(e))
-if __name__ == "__main__":
-    # Define OPC UA nodes to read data from
-    # Replace the node_ids with the actual node ids you want to read from
-    node_ids = [
-        "ns=3;i=1003",
+// Helper function to print results in the console
+function printResultFor(op) {
+    return function printResult(err, res) {
+        if (err) {
+            console.log(op + ' error: ' + err.toString());
+        }
+        if (res) {
+            console.log(op + ' status: ' + res.constructor.name);
+        }
+    };
+}
 
-    ]
+// FOR DEBUG PURPOSE ONLY
+// let obj = {
+//     'devices': {
+//         "1001": {
+//             id: '1001',
+//             type: 'modbus-tcp',
+//             thingId: '2001',
+//             interval: '10000',
+//             connection: {
+//                 ipAddress: '52.149.144.189',
+//                 port: '502',
+//                 slaveId: '1'
+//             },
+//             signals: {
+//                 "temperature": {
+//                     name: "temperature",
+//                     address: '30001',
+//                     length: '1',
+//                     unitId: '1',
+//                     interval: '1000'
+//                 },
+//                 "humidity": {
+//                     name: "humidity",
+//                     address: '30002',
+//                     length: '1',
+//                     unitId: '2',
+//                     interval: '1000'
+//                 }
+//             }
+//         }
+//     }
+// }
 
-    # Create OPC UA client
-    client = Client(endpoint_url)
+// setConnection(obj, null, null);
+function GetAddress(address, length) {
+    let fc = address.split('')[0];
+    let temp = address.slice(1);
+    let response = '';
+    switch (fc) {
+        case '1':
+            response = 'c' + temp;
+            break;
+            break;
+        case '2':
+            response = 'i' + temp;
+        case '3':
+            response = 'hr' + temp;
+            break;
+        case '4':
+            response = 'ir' + temp;
+            break;
+        default:
+        //TBD
+    }
+    if (Number(length) > 1) {
+        response = response + '-' + (Number(temp) + Number(length))
+    }
+    return response;
+}
 
-    try:
-        # Start telemetry data collection
-        collect_telemetry(client, node_ids)
-
-    except KeyboardInterrupt:
-        print("Telemetry collection stopped.")
+module.exports = { setConnection }
