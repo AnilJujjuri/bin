@@ -1,8 +1,30 @@
 import time
 import json
 import asyncio
-from azure.iot.device import IoTHubModuleClient
 import minimalmodbus
+
+# Define the Modbus RTU device configuration
+modbus_rtu_config = {
+    'devices': {
+        "1001": {
+            'id': '1001',
+            'type': 'modbus-rtu',  # Change to 'modbus-rtu' for Modbus RTU devices
+            'thingId': '2001',
+            'interval': 10000,
+            'connection': {
+                'port': '/dev/ttyUSB0',  # Change to your actual serial port
+            },
+            'signals': {
+                "temperature": {
+                    'name': "temperature",
+                    'address': '1',  # Replace with your actual Modbus address
+                    'length': 1,
+                },
+                # Add more signals if needed
+            }
+        }
+    }
+}
 
 def get_address(address, length):
     fc = address[0]
@@ -18,7 +40,7 @@ def get_address(address, length):
         response = 'ir' + temp
     return response + '-' + str(int(temp) + int(length)) if int(length) > 1 else response
 
-async def collect(edge_client, message_class):
+async def collect():
     twin = await get_connection()
     while True:
         try:
@@ -34,7 +56,7 @@ async def collect(edge_client, message_class):
                     }
                     try:
                         # Connect to Modbus RTU device
-                        instrument = minimalmodbus.Instrument('/dev/ttyUSB0', int(element['id']))
+                        instrument = minimalmodbus.Instrument(element['connection']['port'], int(element['id']))
                         instrument.serial.baudrate = 9600
                         instrument.serial.bytesize = 8
                         instrument.serial.parity = minimalmodbus.serial.PARITY_NONE
@@ -49,12 +71,6 @@ async def collect(edge_client, message_class):
 
                         telemetry['ts'] = str(int(time.time()))
                         print(telemetry)
-
-                        try:
-                            output_msg = message_class(json.dumps(telemetry))
-                            edge_client.send_output_event('Telemetry', output_msg, print_result_for('Sending received message'))
-                        except Exception as e:
-                            print("Failed to send data to cloud -", e)
 
                         # Rest of the code remains unchanged
 
@@ -71,22 +87,17 @@ async def collect(edge_client, message_class):
 async def timeout(ms):
     await asyncio.sleep(ms / 1000)
 
-def print_result_for(op):
-    def print_result(err, res):
-        if err:
-            print(op + ' error:', err)
-        if res:
-            print(op + ' status:', type(res).__name__)
-    return print_result
+# Set up Modbus RTU configuration
+twin = None
 
-async def set_connection(twin_obj, edge_client, message_class):
+async def set_connection(twin_obj):
     global twin
     twin = twin_obj
     if twin is None:
         twin = twin_obj
         await asyncio.sleep(1)
         print('Starting Data Acquisition Task')
-        await collect(edge_client, message_class)
+        await collect()
     else:
         twin = twin_obj
     print("Updated twin")
@@ -96,41 +107,11 @@ async def set_connection(twin_obj, edge_client, message_class):
 async def get_connection():
     return twin
 
-# Mocking the Message class, you should replace this with the actual implementation from your library
+# Start data collection
+loop = asyncio.get_event_loop()
+loop.run_until_complete(set_connection(modbus_rtu_config))
+
+# Mock the Message class, replace this with actual implementation
 class Message:
     def __init__(self, payload):
         self.payload = payload
-
-# FOR DEBUG PURPOSE ONLY
-obj = {
-    'devices': {
-        "1001": {
-            'id': '1001',
-            'type': 'modbus-tcp',
-            'thingId': '2001',
-            'interval': 10000,
-            'connection': {
-                'ipAddress': '52.149.144.189',
-                'port': 502,
-                'slaveId': 1
-            },
-            'signals': {
-                "temperature": {
-                    'name': "temperature",
-                    'address': '30001',
-                    'length': 1,
-                    'unitId': 1,
-                    'interval': 1000
-                },
-                "humidity": {
-                    'name': "humidity",
-                    'address': '30002',
-                    'length': 1,
-                    'unitId': 2,
-                    'interval': 1000
-                }
-            }
-        }
-    }
-}
-set_connection(obj, None, None)
