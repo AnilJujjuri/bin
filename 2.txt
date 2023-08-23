@@ -1,133 +1,71 @@
-import {
-    OPCUAClient,
-    MessageSecurityMode, SecurityPolicy,
-    AttributeIds,
-    makeBrowsePath,
-    ClientSubscription,
-    TimestampsToReturn,
-    MonitoringParametersOptions,
-    ReadValueIdLike,
-    ClientMonitoredItem,
-    DataValue
-} from "node-opcua";
+import time
+from freeopcua import Client, ua
 
+def collect(connection):
+    try:
+        # Create a client instance
+        client = Client(connection['endpointUrl'])
+        client.application_uri = "EdgeModbusClient"
 
+        # Connect to the OPC UA server
+        client.connect()
 
-const connectionStrategy = {
-    initialDelay: 1000,
-    maxRetry: 1
-}
-const options = {
-    applicationName: "EdgeModbusClient",
-    connectionStrategy: connectionStrategy,
-    securityMode: MessageSecurityMode.None,
-    securityPolicy: SecurityPolicy.None,
-    endpoint_must_exist: false,
-};
-const client = OPCUAClient.create(options);
-// const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
-const endpointUrl = "opc.tcp://localhost:26543";
-async function collect(connection) {
-    try {
-        // step 1 : connect to
-        await client.connect(connection.endpointUrl);
-        console.log("connected !");
+        print("Connected!")
 
-        // step 2 : createSession
-        const session = await client.createSession();
-        console.log("session created !");
+        # Create a session
+        session = client.create_session()
 
-        // step 3 : browse
-        const browseResult = await session.browse("RootFolder");
+        print("Session created!")
 
-        console.log("references of RootFolder :");
-        for (const reference of browseResult.references) {
-            console.log("   -> ", reference.browseName.toString());
-        }
+        # Browse the "RootFolder"
+        root_folder = session.get_objects_node()
+        references = root_folder.get_children()
 
-        // step 4 : read a variable with readVariableValue
-        const dataValue2 = await session.readVariableValue("ns=3;s=Scalar_Simulation_Double");
-        console.log(" value = ", dataValue2.toString());
+        print("References of RootFolder:")
+        for reference in references:
+            print("   ->", reference.get_display_name().Text)
 
-        // step 4' : read a variable with read
-        const maxAge = 0;
-        const nodeToRead = {
-            nodeId: "ns=3;s=Scalar_Simulation_String",
-            attributeId: AttributeIds.Value
-        };
-        const dataValue = await session.read(nodeToRead, maxAge);
-        console.log(" value ", dataValue.toString());
+        # Read variable values
+        variable_value1 = session.read_variable("ns=3;s=Scalar_Simulation_Double")
+        print("Value 1 =", variable_value1.get_value())
 
-        // step 5: install a subscription and install a monitored item for 10 seconds
-        const subscription = ClientSubscription.create(session, {
-            requestedPublishingInterval: 1000,
-            requestedLifetimeCount: 100,
-            requestedMaxKeepAliveCount: 10,
-            maxNotificationsPerPublish: 100,
-            publishingEnabled: true,
-            priority: 10
-        });
+        variable_value2 = session.read("ns=3;s=Scalar_Simulation_String")
+        print("Value 2 =", variable_value2)
 
-        subscription.on("started", function () {
-            console.log("subscription started for 2 seconds - subscriptionId=", subscription.subscriptionId);
-        }).on("keepalive", function () {
-            console.log("keepalive");
-        }).on("terminated", function () {
-            console.log("terminated");
-        });
+        # Create a subscription and install a monitored item
+        subscription = session.create_subscription(1000, None, 10)
+        monitored_item = subscription.create_monitored_item("ns=3;s=Scalar_Simulation_Float", ua.AttributeIds.Value, 100)
+        
+        def data_change_handler(data):
+            print("Value changed:", data.monitored_item.Value.Value)
+        
+        monitored_item.data_change_notification.add_listener(data_change_handler)
 
+        time.sleep(10)
 
-        // install monitored item
+        print("Now terminating subscription")
+        subscription.delete()
 
-        const itemToMonitor: ReadValueIdLike = {
-            nodeId: "ns=3;s=Scalar_Simulation_Float",
-            attributeId: AttributeIds.Value
-        };
-        const parameters: MonitoringParametersOptions = {
-            samplingInterval: 100,
-            discardOldest: true,
-            queueSize: 10
-        };
+        # Finding the nodeId of a node by Browse name
+        browse_path = ["RootFolder", "Objects", "Server.ServerStatus.BuildInfo.ProductName"]
+        result = session.translate(browse_path)
+        product_name_node_id = result.targets[0].TargetId
+        print("Product Name nodeId =", product_name_node_id)
 
-        const monitoredItem = ClientMonitoredItem.create(
-            subscription,
-            itemToMonitor,
-            parameters,
-            TimestampsToReturn.Both
-        );
+        # Close session
+        session.close()
 
-        monitoredItem.on("changed", (dataValue: DataValue) => {
-            console.log(" value has changed : ", dataValue.value.toString());
-        });
+        # Disconnect from the OPC UA server
+        client.disconnect()
+        
+        print("Done!")
 
+    except Exception as err:
+        print("An error has occurred:", err)
 
-
-        async function timeout(ms: number) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-        await timeout(10000);
-
-        console.log("now terminating subscription");
-        await subscription.terminate();
-
-
-
-        // step 6: finding the nodeId of a node by Browse name
-        const browsePath = makeBrowsePath("RootFolder", "/Objects/Server.ServerStatus.BuildInfo.ProductName");
-
-        const result = await session.translateBrowsePath(browsePath);
-        const productNameNodeId = result.targets[0].targetId;
-        console.log(" Product Name nodeId = ", productNameNodeId.toString());
-
-        // close session
-        await session.close();
-
-        // disconnecting
-        await client.disconnect();
-        console.log("done !");
-    } catch (err) {
-        console.log("An error has occured : ", err);
+# For testing
+if __name__ == "__main__":
+    connection = {
+        "endpointUrl": "opc.tcp://localhost:26543"
     }
-}
-
-module.exports = { collect }
+    collect(connection)
