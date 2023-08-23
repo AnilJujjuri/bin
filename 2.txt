@@ -1,71 +1,136 @@
 import time
-from opcua import Client
+import json
+import asyncio
+from azure.iot.device import IoTHubModuleClient
+import minimalmodbus
 
-def collect(connection):
-    try:
-        # Create a client instance
-        client = Client(connection['endpointUrl'])
-        client.application_uri = "EdgeModbusClient"
+def get_address(address, length):
+    fc = address[0]
+    temp = address[1:]
+    response = ''
+    if fc == '1':
+        response = 'c' + temp
+    elif fc == '2':
+        response = 'i' + temp
+    elif fc == '3':
+        response = 'hr' + temp
+    elif fc == '4':
+        response = 'ir' + temp
+    return response + '-' + str(int(temp) + int(length)) if int(length) > 1 else response
 
-        # Connect to the OPC UA server
-        client.connect()
+async def collect(edge_client, message_class):
+    twin = await get_connection()
+    while True:
+        try:
+            print("Running")
+            connection = twin['devices']
+            if connection:
+                for key, element in connection.items():
+                    telemetry = {
+                        "thingId": element['thingId'],
+                        "deviceId": element['id'],
+                        "message_type": "telemetry",
+                        "data": {}
+                    }
+                    try:
+                        # Connect to Modbus RTU device
+                        instrument = minimalmodbus.Instrument('/dev/ttyUSB0', int(element['id']))
+                        instrument.serial.baudrate = 9600
+                        instrument.serial.bytesize = 8
+                        instrument.serial.parity = minimalmodbus.serial.PARITY_NONE
+                        instrument.serial.stopbits = 1
 
-        print("Connected!")
+                        for signal_key, signal in element['signals'].items():
+                            print(signal['name'])
+                            address = int(signal['address']) - 1  # Modbus addresses are 0-based
+                            value = instrument.read_register(address, functioncode=3, numberOfDecimals=0)
+                            print(value)
+                            telemetry['data'][signal['name']] = value
 
-        # Create a session
-        session = client.create_session()
+                        telemetry['ts'] = str(int(time.time()))
+                        print(telemetry)
 
-        print("Session created!")
+                        try:
+                            output_msg = message_class(json.dumps(telemetry))
+                            edge_client.send_output_event('Telemetry', output_msg, print_result_for('Sending received message'))
+                        except Exception as e:
+                            print("Failed to send data to cloud -", e)
 
-        # Browse the "RootFolder"
-        root_folder = session.get_root_node()
-        references = root_folder.get_children()
+                        # Rest of the code remains unchanged
 
-        print("References of RootFolder:")
-        for reference in references:
-            print("   ->", reference.get_display_name().Text)
+                    except Exception as e:
+                        print("An error has occurred:", e)
 
-        # Read variable values
-        variable_value1 = session.get_node("ns=3;s=Scalar_Simulation_Double").get_value()
-        print("Value 1 =", variable_value1)
+                    await timeout(element['interval'])
 
-        variable_value2 = session.get_node("ns=3;s=Scalar_Simulation_String").get_value()
-        print("Value 2 =", variable_value2)
+        except Exception as e:
+            print("Error in communication/processing:", e)
 
-        # Create a subscription and install a monitored item
-        subscription = session.create_subscription(1000, None, 10)
-        monitored_item = subscription.subscribe_data_change("ns=3;s=Scalar_Simulation_Float")
+        await timeout(5000)
 
-        def data_change_handler(data):
-            print("Value changed:", data.monitored_item.Value.Value)
+async def timeout(ms):
+    await asyncio.sleep(ms / 1000)
 
-        monitored_item.data_change_notification.add_listener(data_change_handler)
+def print_result_for(op):
+    def print_result(err, res):
+        if err:
+            print(op + ' error:', err)
+        if res:
+            print(op + ' status:', type(res).__name__)
+    return print_result
 
-        time.sleep(10)
+async def set_connection(twin_obj, edge_client, message_class):
+    global twin
+    twin = twin_obj
+    if twin is None:
+        twin = twin_obj
+        await asyncio.sleep(1)
+        print('Starting Data Acquisition Task')
+        await collect(edge_client, message_class)
+    else:
+        twin = twin_obj
+    print("Updated twin")
+    print(twin_obj)
+    print(twin)
 
-        print("Now terminating subscription")
-        subscription.delete()
+async def get_connection():
+    return twin
 
-        # Finding the nodeId of a node by Browse name
-        browse_path = ["RootFolder", "Objects", "Server.ServerStatus.BuildInfo.ProductName"]
-        result = session.translate(browse_path)
-        product_name_node_id = result.targets[0].target_id
-        print("Product Name nodeId =", product_name_node_id)
+# Mocking the Message class, you should replace this with the actual implementation from your library
+class Message:
+    def __init__(self, payload):
+        self.payload = payload
 
-        # Close session
-        session.close()
-
-        # Disconnect from the OPC UA server
-        client.disconnect()
-
-        print("Done!")
-
-    except Exception as err:
-        print("An error has occurred:", err)
-
-# For testing
-if __name__ == "__main__":
-    connection = {
-        "endpointUrl": "opc.tcp://localhost:26543"
+# FOR DEBUG PURPOSE ONLY
+obj = {
+    'devices': {
+        "1001": {
+            'id': '1001',
+            'type': 'modbus-tcp',
+            'thingId': '2001',
+            'interval': 10000,
+            'connection': {
+                'ipAddress': '52.149.144.189',
+                'port': 502,
+                'slaveId': 1
+            },
+            'signals': {
+                "temperature": {
+                    'name': "temperature",
+                    'address': '30001',
+                    'length': 1,
+                    'unitId': 1,
+                    'interval': 1000
+                },
+                "humidity": {
+                    'name': "humidity",
+                    'address': '30002',
+                    'length': 1,
+                    'unitId': 2,
+                    'interval': 1000
+                }
+            }
+        }
     }
-    collect(connection)
+}
+set_connection(obj, None, None)
