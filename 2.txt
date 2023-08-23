@@ -1,5 +1,5 @@
 import time
-from freeopcua import Client, ua
+from opcua import Client
 
 def collect(connection):
     try:
@@ -18,7 +18,7 @@ def collect(connection):
         print("Session created!")
 
         # Browse the "RootFolder"
-        root_folder = session.get_objects_node()
+        root_folder = session.get_root_node()
         references = root_folder.get_children()
 
         print("References of RootFolder:")
@@ -26,19 +26,19 @@ def collect(connection):
             print("   ->", reference.get_display_name().Text)
 
         # Read variable values
-        variable_value1 = session.read_variable("ns=3;s=Scalar_Simulation_Double")
-        print("Value 1 =", variable_value1.get_value())
+        variable_value1 = session.get_node("ns=3;s=Scalar_Simulation_Double").get_value()
+        print("Value 1 =", variable_value1)
 
-        variable_value2 = session.read("ns=3;s=Scalar_Simulation_String")
+        variable_value2 = session.get_node("ns=3;s=Scalar_Simulation_String").get_value()
         print("Value 2 =", variable_value2)
 
         # Create a subscription and install a monitored item
         subscription = session.create_subscription(1000, None, 10)
-        monitored_item = subscription.create_monitored_item("ns=3;s=Scalar_Simulation_Float", ua.AttributeIds.Value, 100)
-        
+        monitored_item = subscription.subscribe_data_change("ns=3;s=Scalar_Simulation_Float")
+
         def data_change_handler(data):
             print("Value changed:", data.monitored_item.Value.Value)
-        
+
         monitored_item.data_change_notification.add_listener(data_change_handler)
 
         time.sleep(10)
@@ -49,7 +49,7 @@ def collect(connection):
         # Finding the nodeId of a node by Browse name
         browse_path = ["RootFolder", "Objects", "Server.ServerStatus.BuildInfo.ProductName"]
         result = session.translate(browse_path)
-        product_name_node_id = result.targets[0].TargetId
+        product_name_node_id = result.targets[0].target_id
         print("Product Name nodeId =", product_name_node_id)
 
         # Close session
@@ -57,7 +57,7 @@ def collect(connection):
 
         # Disconnect from the OPC UA server
         client.disconnect()
-        
+
         print("Done!")
 
     except Exception as err:
