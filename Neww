@@ -1,66 +1,158 @@
-# Standard Library
-import logging
-import threading
+import asyncio
+import json
 import time
 
-# Third Party Library
-from azure.iot.device import IoTHubModuleClient
+# Simulated Edge client for illustration purposes
+class EdgeClient:
+    def send_output_event(self, event_name, message):
+        print(f"Sending message to {event_name}: {message}")
 
-logger = logging.getLogger(__name__)
+# Simulated Message class for illustration purposes
+class Message:
+    def __init__(self, content):
+        self.content = content
 
+    def __str__(self):
+        return self.content
 
-class CommunicationModule(threading.Thread):
-    def __init__(self, connection_string=None, **kwargs):
-        logger.info("Inside Communication module constructor")
-        threading.Thread.__init__(self)
-        self.connection_string = connection_string
-        self.client = None
-        self.on_property_update_callback = kwargs.get("on_property_update")
-        self.properties = {"reported": {}, "desired": {}}
-        self.methods = kwargs.get("methods", {})
-        self.daemon = True
+# Simulated OPC UA client for illustration purposes
+class OPCUAClient:
+    @staticmethod
+    def create(options):
+        return OPCUAClient()
 
-    def connect(self):
-        logger.info(f"connecting: {self.connection_string}")
-        if self.connection_string:
-            self.client = IoTHubModuleClient.create_from_connection_string(self.connection_string)
-            logger.info(f"self.client in connect if: {self.client}")
-        else:
-            self.client = IoTHubModuleClient.create_from_edge_environment()
-            logger.info(f"self.client in connect else: {self.client}")
-        self.client.on_twin_desired_properties_patch_received = self.on_property_update
-        self.start(debug=True)
+    async def connect(self, server_url):
+        print(f"Connecting to {server_url}")
+        await asyncio.sleep(1)
 
-    def run(self):
-        while True:
-            # Do something
-            time.sleep(1)
+    async def create_session(self):
+        print("Creating session")
+        await asyncio.sleep(1)
 
-    def disconnect(self):
-        if self.client:
-            self.client.shutdown()
+    async def read_variable_value(self, address):
+        print(f"Reading variable at {address}")
+        await asyncio.sleep(1)
+        return {"Value": {"Value": 42}}
 
-    def on_property_update(self, data):
-        """
-        Desired Property update from the server
-        """
-        self.properties["desired"].update(data)
-        if self.on_property_update_callback:
-            self.on_property_update_callback(self.properties["desired"])
+    async def disconnect(self):
+        print("Disconnecting")
+        await asyncio.sleep(1)
 
-    def update_property(self, data):
-        """
-        Reported Property to be updated from device
-        """
-        return self.client.patch_twin_reported_properties(data)
+# Simulated implementation for demonstration purposes
+class SimulatedEdgeOPCUAClient:
+    async def send_output_event(self, event_name, message):
+        print(f"Sending output event: {event_name} - {message}")
 
-    def get_properties(self):
-        self.properties = self.client.get_twin()
-        return self.properties
+# Define connection options and strategies
+connection_strategy = {
+    "initial_delay": 1000,
+    "max_retry": 1
+}
 
-    def __enter__(self):
-        self.connect()
-        return self
+options = {
+    "application_name": "EdgeOPCUAClient",
+    "connection_strategy": connection_strategy,
+    "security_mode": MessageSecurityMode.None,
+    "security_policy": SecurityPolicy.None,
+    "endpoint_must_exist": False
+}
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.disconnect(debug=True)
+twin = None
+client = OPCUAClient.create(options)
+
+# Define the collect function
+async def collect(edge_client, message_class):
+    while True:
+        try:
+            print("Running")
+            connection = await get_connection()
+            connection = connection.devices
+            print(connection)
+            if connection:
+                for key in connection:
+                    element = connection[key]
+                    telemetry = {
+                        "thingId": element["thingId"],
+                        "deviceId": element["id"],
+                        "message_type": "telemetry",
+                        "data": {}
+                    }
+                    try:
+                        await client.connect(element["connection"]["serverUrl"])
+                        print("Connected!")
+
+                        session = await client.create_session()
+                        print("Session created!")
+
+                        for signal_key in element["signals"]:
+                            signal = element["signals"][signal_key]
+                            data_value = await session.read_variable_value(signal["address"])
+                            telemetry["data"][signal["name"]] = data_value["Value"]["Value"]
+
+                        telemetry["ts"] = int(time.time())
+                        print(telemetry)
+
+                        if telemetry:
+                            output_msg = message_class(json.dumps(telemetry))
+                            await edge_client.send_output_event('opcuaTelemetry', output_msg)
+                    except Exception as error:
+                        print("Failed to communicate with OPC UA server:", error)
+                    finally:
+                        await session.close()
+                        await client.disconnect()
+                        print("Done!")
+
+                    await asyncio.sleep(element["interval"] / 1000)
+        except Exception as error:
+            print("Error in communication/processing:", error)
+        await asyncio.sleep(0.1)
+
+# Define set_connection, get_connection, and timeout functions (similar to JavaScript)
+
+async def set_connection(twin_obj, edge_client):
+    global twin
+    twin = twin_obj
+    print("Updated twin")
+    print(twin_obj)
+    print(twin)
+
+async def get_connection():
+    return twin
+
+async def timeout(ms):
+    await asyncio.sleep(ms / 1000)
+
+# Define the main function
+async def main():
+    edge_client = SimulatedEdgeOPCUAClient()
+    message_class = Message
+    await set_connection({
+        "devices": {
+            "59f350207d83beb8887f7c2242a38ab7": {
+                "id": "59f350207d83beb8887f7c2242a38ab7",
+                "type": "opcua",
+                "thingId": "8942c62f33e2bb3c547f9bfc22d77f27",
+                "interval": 5000,
+                "connection": {
+                    "serverUrl": "opc.tcp://52.152.131.111:53530/OPCUA/SimulationServer"
+                },
+                "signals": {
+                    "temperature": {
+                        "name": "temperature",
+                        "address": "ns=3;s=Counter",
+                        "interval": 1000
+                    },
+                    "humidity": {
+                        "name": "humidity",
+                        "address": "ns=3;s=Random",
+                        "interval": 1000
+                    }
+                }
+            }
+        }
+    }, edge_client)
+    await collect(edge_client, message_class)
+
+# Run the main function
+if __name__ == "__main__":
+    asyncio.run(main())
