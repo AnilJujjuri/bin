@@ -1,7 +1,7 @@
 import asyncio
 import json
 import time
-
+from opcua import Client
 # Simulated Edge client for illustration purposes
 class EdgeClient:
     def send_output_event(self, event_name, message):
@@ -52,8 +52,8 @@ connection_strategy = {
 options = {
     "application_name": "EdgeOPCUAClient",
     "connection_strategy": connection_strategy,
-    "security_mode": MessageSecurityMode.None,
-    "security_policy": SecurityPolicy.None,
+    "security_mode": None,
+    "security_policy": None,
     "endpoint_must_exist": False
 }
 
@@ -66,8 +66,9 @@ async def collect(edge_client, message_class):
         try:
             print("Running")
             connection = await get_connection()
-            connection = connection.devices
-            print(connection)
+            connection = twin['devices']
+            #connection = connection.devices
+            #print(connection)
             if connection:
                 for key in connection:
                     element = connection[key]
@@ -83,11 +84,17 @@ async def collect(edge_client, message_class):
 
                         session = await client.create_session()
                         print("Session created!")
-
-                        for signal_key in element["signals"]:
-                            signal = element["signals"][signal_key]
-                            data_value = await session.read_variable_value(signal["address"])
-                            telemetry["data"][signal["name"]] = data_value["Value"]["Value"]
+                        node_ids = ["ns=3;i=1003"]
+                        for node_id in node_ids:
+                            node = client.get_node(node_id)
+                            value = node.get_value()
+                #telemetry_data[node_id] = value
+                            properties = node.get_properties()
+                            if properties:
+                                for prop in properties:
+                                    prop_name = prop.get_browse_name().to_string().split(":")[-1]
+                                    prop_value = prop.get_value()
+                                    telemetry[prop_name] = prop_value
 
                         telemetry["ts"] = int(time.time())
                         print(telemetry)
@@ -111,7 +118,13 @@ async def collect(edge_client, message_class):
 
 async def set_connection(twin_obj, edge_client):
     global twin
-    twin = twin_obj
+    if twin is None:
+        twin = twin_obj
+        await asyncio.sleep(1)
+        print('Starting Data Acquisition Task')
+        await collect(edge_client,message_class=Message)
+    else:
+        twin = twin_obj
     print("Updated twin")
     print(twin_obj)
     print(twin)
@@ -134,7 +147,7 @@ async def main():
                 "thingId": "8942c62f33e2bb3c547f9bfc22d77f27",
                 "interval": 5000,
                 "connection": {
-                    "serverUrl": "opc.tcp://52.152.131.111:53530/OPCUA/SimulationServer"
+                    "serverUrl": "opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer"
                 },
                 "signals": {
                     "temperature": {
