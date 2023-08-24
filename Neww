@@ -169,3 +169,11 @@ async def main():
 # Run the main function
 if __name__ == "__main__":
     asyncio.run(main())
+Starting Data Acquisition Task
+Running
+Connecting to opc.tcp://MYTSL02946.lnties.com:53530/OPCUA/SimulationServer
+Connected!
+Creating session
+Session created!
+Failed to communicate with OPC UA server: 'OPCUAClient' object has no attribute 'get_node'
+Error in communication/processing: 'NoneType' object has no attribute 'close'
