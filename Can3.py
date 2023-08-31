@@ -1,7 +1,17 @@
-C:\Users\40020507\AppData\Local\Microsoft\WindowsApps\python3.10.exe C:/Users/40020507/Downloads/diagslave-3.4/win/tets1.py
-Traceback (most recent call last):
-  File "C:\Users\40020507\Downloads\diagslave-3.4\win\tets1.py", line 17, in <module>
-    run_modbus_server()
-  File "C:\Users\40020507\Downloads\diagslave-3.4\win\tets1.py", line 14, in run_modbus_server
+from pymodbus3.server.sync import StartTcpServer
+from pymodbus3.datastore import ModbusSlaveContext, ModbusServerContext
+from pymodbus3.datastore import ModbusSequentialDataBlock
+
+def run_modbus_server():
+    store = ModbusSlaveContext(
+        di=ModbusSequentialDataBlock(0, [0] * 100),  # Discrete Inputs
+        co=ModbusSequentialDataBlock(0, [0] * 100),  # Coils
+        hr=ModbusSequentialDataBlock(0, [0] * 100),  # Holding Registers
+        ir=ModbusSequentialDataBlock(0, [0] * 100)   # Input Registers
+    )
+    context = ModbusServerContext(slaves=store, single=True)
+
     server = StartTcpServer(context, address=("0.0.0.0", 5020))
-TypeError: StartTcpServer() takes 0 positional arguments but 1 was given
+
+if __name__ == "__main__":
+    run_modbus_server()
