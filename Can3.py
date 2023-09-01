@@ -1,21 +1,8 @@
-from modbus_tk import modbus_tcp
-from modbus_tk.defines import READ_HOLDING_REGISTERS, WRITE_SINGLE_REGISTER
-import logging
-
-def run_modbus_server():
-    server = modbus_tcp.TcpServer(address="0.0.0.0", port=5020)
-    logger = modbus_tk.utils.create_logger(name="console", record_format="%(message)s")
-    logger.setLevel(logging.INFO)
-
-    try:
-        logger.info("Modbus server is running...")
-        server.start()
-        slave = server.add_slave(1)
-        slave.add_block("holding", READ_HOLDING_REGISTERS, 0, 100)
-        slave.add_block("coil", WRITE_SINGLE_REGISTER, 0, 100)
-        server.start()
-    except KeyboardInterrupt:
-        server.stop()
-
-if __name__ == "__main__":
+Traceback (most recent call last):
+  File "c:\Users\40020507\Downloads\diagslave-3.4\win\new.py", line 61, in <module>
     run_modbus_server()
+  File "c:\Users\40020507\Downloads\diagslave-3.4\win\new.py", line 55, in run_modbus_server
+    slave.add_block("coil", WRITE_SINGLE_REGISTER, 0, 100)
+  File "C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\modbus_tk\modbus.py", line 764, in add_block
+    raise InvalidModbusBlockError("Invalid block type {0}".format(block_type))
+modbus_tk.exceptions.InvalidModbusBlockError: Invalid block type 6
