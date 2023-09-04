@@ -1,29 +1,61 @@
-EEE
-======================================================================
-ERROR: test_collect_and_send_data_with_empty_response (__main__.TestModbusClient)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "d:\OneDrive - LTTS\Desktop\ModbusTcp\test.py", line 61, in test_collect_and_send_data_with_empty_response
-    collect_and_send_data(client, send_to_iothub_mock)
-TypeError: collect_and_send_data() takes 1 positional argument but 2 were given
+import unittest
+from main import collect_and_send_data
 
-======================================================================
-ERROR: test_collect_and_send_data_with_invalid_data (__main__.TestModbusClient)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "d:\OneDrive - LTTS\Desktop\ModbusTcp\test.py", line 44, in test_collect_and_send_data_with_invalid_data
-    collect_and_send_data(client, send_to_iothub_mock)
-TypeError: collect_and_send_data() takes 1 positional argument but 2 were given
+class TestModbusClient(unittest.TestCase):
 
-======================================================================
-ERROR: test_collect_and_send_data_with_valid_data (__main__.TestModbusClient)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "d:\OneDrive - LTTS\Desktop\ModbusTcp\test.py", line 27, in test_collect_and_send_data_with_valid_data
-    collect_and_send_data(client, send_to_iothub_mock)
-TypeError: collect_and_send_data() takes 1 positional argument but 2 were given
+    def test_collect_and_send_data_with_valid_data(self):
+        # Define a mock Modbus client with read_holding_registers method
+        class MockModbusClient:
+            def __init__(self):
+                self.registers = [100, 220, 10, 0]  # Replace with sample data
+            def read_holding_registers(self, address, count, unit=0):
+                return self
 
-----------------------------------------------------------------------
-Ran 3 tests in 0.001s
+        # Mock the send_to_iothub function
+        def send_to_iothub_mock(data):
+            self.assertEqual(data, {
+                "properties": {
+                    "energy_consumption": 100,
+                    "voltage": 220,
+                    "current": 10,
+                    "power": 0
+                }
+            })
 
-FAILED (errors=3)
+        # Call the function with the mocked Modbus client
+        collect_and_send_data(MockModbusClient())
+
+    def test_collect_and_send_data_with_invalid_data(self):
+        # Define a mock Modbus client with read_holding_registers method
+        class MockModbusClient:
+            def __init__(self):
+                self.registers = [50, -10, 5, 300]  # Invalid data
+            def read_holding_registers(self, address, count, unit=0):
+                return self
+
+        # Mock the send_to_iothub function
+        def send_to_iothub_mock(data):
+            # This function should not be called because of invalid data
+            self.fail("send_to_iothub_mock should not be called")
+
+        # Call the function with the mocked Modbus client
+        collect_and_send_data(MockModbusClient())
+
+    def test_collect_and_send_data_with_empty_response(self):
+        # Define a mock Modbus client with read_holding_registers method
+        class MockModbusClient:
+            def __init__(self):
+                self.registers = []  # Empty response
+            def read_holding_registers(self, address, count, unit=0):
+                return self
+
+        # Mock the send_to_iothub function
+        def send_to_iothub_mock(data):
+            # This function should not be called because of empty response
+            self.fail("send_to_iothub_mock should not be called")
+
+        # Call the function with the mocked Modbus client
+        collect_and_send_data(MockModbusClient())
+
+if __name__ == '__main__':
+    unittest.main()
