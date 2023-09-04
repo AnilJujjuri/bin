@@ -22,9 +22,9 @@ class TestModbusClient(unittest.TestCase):
                 }
             })
 
-        # Call the function with the mocked objects
+        # Call the function with the mocked Modbus client
         client = MockModbusClient()
-        collect_and_send_data(send_to_iothub_mock)
+        collect_and_send_data(client, send_to_iothub_mock)
 
     def test_collect_and_send_data_with_invalid_data(self):
         # Define a mock Modbus client with read_holding_registers method
@@ -39,9 +39,9 @@ class TestModbusClient(unittest.TestCase):
             # This function should not be called because of invalid data
             self.fail("send_to_iothub_mock should not be called")
 
-        # Call the function with the mocked objects
+        # Call the function with the mocked Modbus client
         client = MockModbusClient()
-        collect_and_send_data(send_to_iothub_mock)
+        collect_and_send_data(client, send_to_iothub_mock)
 
     def test_collect_and_send_data_with_empty_response(self):
         # Define a mock Modbus client with read_holding_registers method
@@ -56,15 +56,9 @@ class TestModbusClient(unittest.TestCase):
             # This function should not be called because of empty response
             self.fail("send_to_iothub_mock should not be called")
 
-        # Call the function with the mocked objects
+        # Call the function with the mocked Modbus client
         client = MockModbusClient()
-        collect_and_send_data(send_to_iothub_mock)
+        collect_and_send_data(client, send_to_iothub_mock)
 
 if __name__ == '__main__':
     unittest.main()
-
-Ran 3 tests in 0.000s
-
-OK
-An error has occurred: 'function' object has no attribute 'read_holding_registers'
-An error has occurred: 'function' object has no attribute 'read_holding_registers'
