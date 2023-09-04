@@ -1,129 +1,53 @@
-import time
-from azure.iot.device import IoTHubModuleClient
+import sys
 
-def get_address(address, length):
-    fc = address[0]
-    temp = address[1:]
-    response = ''
-    if fc == '1':
-        response = 'c' + temp
-    elif fc == '2':
-        response = 'i' + temp
-    elif fc == '3':
-        response = 'hr' + temp
-    elif fc == '4':
-        response = 'ir' + temp
-    return response + '-' + str(int(temp) + int(length)) if int(length) > 1 else response
+from opcua import Client
 
-async def collect(edge_client, message_class):
-    twin = await get_connection()
-    while True:
+# Define the Prosys Simulator URL
+
+prosys_simulator_url = "opc.tcp://HYTSL00827:53530/OPCUA/SimulationServer"
+
+                        # ["opc.tcp://localhost:53530/OPCUA/SimulationServer"
+ # Discover OPC UA servers on the specified URL
+
+def discover_server(server_url):
+
+    try:
+        client = Client(server_url)
+        client.connect()
+        server_name = client.get_endpoints()[0].Server.ApplicationName.Text
+        client.disconnect()
+        return {"url": server_url, "name": server_name}
+    except Exception as e:
+        pass  # Server not found or connection failed
+    return None
+
+# Main function 
+
+def main():
+
+    # Discover the Prosys OPC UA Simulator
+    prosys_server = discover_server(prosys_simulator_url)
+
+    if prosys_server:
+
+        print("Discovered Prosys OPC UA Server:")
+
+        print(f"Server URL: {prosys_server['url']}, Server Name: {prosys_server['name']}") 
+
         try:
-            print("Running")
-            connection = twin['devices']
-            if connection:
-                for key, element in connection.items():
-                    telemetry = {
-                        "thingId": element['thingId'],
-                        "deviceId": element['id'],
-                        "message_type": "telemetry",
-                        "data": {}
-                    }
-                    try:
-                        # Connect to modbus device
-                        device = modbus_tcp(element['connection']['ipAddress'], element['connection']['port'], element['connection']['slaveId'] if 'slaveId' in element['connection'] else 1)
-                        print("Connected!")
+            # Connect to the Prosys OPC UA Serveer
+            client = Client(prosys_server['url'])
+            client.connect()
+            print("Connected to Prosys OPC UA Server")
+            node = client.get_node("ns=3;i=1003")  # Replace with the NodeId you want to read
+            value = node.get_value()
+            print("Node Value:", value)
+            client.disconnect()
 
-                        for signal_key, signal in element['signals'].items():
-                            print(signal['name'])
-                            value = device.read(get_address(signal['address'], signal['length']))
-                            print(value)
-                            telemetry['data'][signal['name']] = value
-
-                        telemetry['ts'] = str(int(time.time()))
-                        print(telemetry)
-
-                        try:
-                            output_msg = message_class(json.dumps(telemetry))
-                            edge_client.send_output_event('modbustcpTelemetry', output_msg, print_result_for('Sending received message'))
-                        except Exception as e:
-                            print("Failed to send data to cloud -", e)
-
-                        device = None
-                        print("Done!")
-                    except Exception as e:
-                        print("An error has occurred:", e)
-                    await timeout(element['interval'])
         except Exception as e:
-            print("Error in communication/processing:", e)
-        await timeout(5000)
-
-async def timeout(ms):
-    await asyncio.sleep(ms / 1000)
-
-def print_result_for(op):
-    def print_result(err, res):
-        if err:
-            print(op + ' error:', err)
-        if res:
-            print(op + ' status:', type(res).__name__)
-    return print_result
-
-# You'll need to replace this import with the actual modbus library for Python
-# import modbus
-
-async def set_connection(twin_obj, edge_client, message_class):
-    global twin
-    twin = twin_obj
-    if twin is None:
-        twin = twin_obj
-        await asyncio.sleep(1)
-        print('Starting Data Acquisition Task')
-        await collect(edge_client, message_class)
+            print("Error connecting to Prosys OPC UA Server:", str(e))
     else:
-        twin = twin_obj
-    print("Updated twin")
-    print(twin_obj)
-    print(twin)
+       print("Prosys OPC UA Server not found.")
 
-async def get_connection():
-    return twin
-
-# Mocking the Message class, you should replace this with the actual implementation from your library
-class Message:
-    def __init__(self, payload):
-        self.payload = payload
-
-# FOR DEBUG PURPOSE ONLY
-# obj = {
-#     'devices': {
-#         "1001": {
-#             'id': '1001',
-#             'type': 'modbus-tcp',
-#             'thingId': '2001',
-#             'interval': 10000,
-#             'connection': {
-#                 'ipAddress': '52.149.144.189',
-#                 'port': 502,
-#                 'slaveId': 1
-#             },
-#             'signals': {
-#                 "temperature": {
-#                     'name': "temperature",
-#                     'address': '30001',
-#                     'length': 1,
-#                     'unitId': 1,
-#                     'interval': 1000
-#                 },
-#                 "humidity": {
-#                     'name': "humidity",
-#                     'address': '30002',
-#                     'length': 1,
-#                     'unitId': 2,
-#                     'interval': 1000
-#                 }
-#             }
-#         }
-#     }
-# }
-# set_connection(obj, None, None)
+if __name__ == "__main__":
+    main()
