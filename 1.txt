@@ -1,53 +1,64 @@
-import sys
+import unittest
+from modbus_client import collect_and_send_data
 
-from opcua import Client
+class TestModbusClient(unittest.TestCase):
 
-# Define the Prosys Simulator URL
+    def test_collect_and_send_data_with_valid_data(self):
+        # Define a mock Modbus client with read_holding_registers method
+        class MockModbusClient:
+            def __init__(self):
+                self.registers = [100, 220, 10, 0]  # Replace with sample data
+            def read_holding_registers(self, address, count, unit=0):
+                return self
 
-prosys_simulator_url = "opc.tcp://HYTSL00827:53530/OPCUA/SimulationServer"
+        # Mock the send_to_iothub function
+        def send_to_iothub_mock(data):
+            self.assertEqual(data, {
+                "properties": {
+                    "energy_consumption": 100,
+                    "voltage": 220,
+                    "current": 10,
+                    "power": 0
+                }
+            })
 
-                        # ["opc.tcp://localhost:53530/OPCUA/SimulationServer"
- # Discover OPC UA servers on the specified URL
+        # Call the function with the mocked objects
+        client = MockModbusClient()
+        collect_and_send_data(client, send_to_iothub_mock)
 
-def discover_server(server_url):
+    def test_collect_and_send_data_with_invalid_data(self):
+        # Define a mock Modbus client with read_holding_registers method
+        class MockModbusClient:
+            def __init__(self):
+                self.registers = [50, -10, 5, 300]  # Invalid data
+            def read_holding_registers(self, address, count, unit=0):
+                return self
 
-    try:
-        client = Client(server_url)
-        client.connect()
-        server_name = client.get_endpoints()[0].Server.ApplicationName.Text
-        client.disconnect()
-        return {"url": server_url, "name": server_name}
-    except Exception as e:
-        pass  # Server not found or connection failed
-    return None
+        # Mock the send_to_iothub function
+        def send_to_iothub_mock(data):
+            # This function should not be called because of invalid data
+            self.fail("send_to_iothub_mock should not be called")
 
-# Main function 
+        # Call the function with the mocked objects
+        client = MockModbusClient()
+        collect_and_send_data(client, send_to_iothub_mock)
 
-def main():
+    def test_collect_and_send_data_with_empty_response(self):
+        # Define a mock Modbus client with read_holding_registers method
+        class MockModbusClient:
+            def __init__(self):
+                self.registers = []  # Empty response
+            def read_holding_registers(self, address, count, unit=0):
+                return self
 
-    # Discover the Prosys OPC UA Simulator
-    prosys_server = discover_server(prosys_simulator_url)
+        # Mock the send_to_iothub function
+        def send_to_iothub_mock(data):
+            # This function should not be called because of empty response
+            self.fail("send_to_iothub_mock should not be called")
 
-    if prosys_server:
+        # Call the function with the mocked objects
+        client = MockModbusClient()
+        collect_and_send_data(client, send_to_iothub_mock)
 
-        print("Discovered Prosys OPC UA Server:")
-
-        print(f"Server URL: {prosys_server['url']}, Server Name: {prosys_server['name']}") 
-
-        try:
-            # Connect to the Prosys OPC UA Serveer
-            client = Client(prosys_server['url'])
-            client.connect()
-            print("Connected to Prosys OPC UA Server")
-            node = client.get_node("ns=3;i=1003")  # Replace with the NodeId you want to read
-            value = node.get_value()
-            print("Node Value:", value)
-            client.disconnect()
-
-        except Exception as e:
-            print("Error connecting to Prosys OPC UA Server:", str(e))
-    else:
-       print("Prosys OPC UA Server not found.")
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    unittest.main()
