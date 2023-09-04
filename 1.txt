@@ -1,45 +1,29 @@
-import unittest
-from main import collect_and_send_data
-from unittest.mock import Mock
+EEE
+======================================================================
+ERROR: test_collect_and_send_data_with_empty_response (__main__.TestModbusClient)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "d:\OneDrive - LTTS\Desktop\ModbusTcp\test.py", line 61, in test_collect_and_send_data_with_empty_response
+    collect_and_send_data(client, send_to_iothub_mock)
+TypeError: collect_and_send_data() takes 1 positional argument but 2 were given
 
-class TestModbusClient(unittest.TestCase):
+======================================================================
+ERROR: test_collect_and_send_data_with_invalid_data (__main__.TestModbusClient)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "d:\OneDrive - LTTS\Desktop\ModbusTcp\test.py", line 44, in test_collect_and_send_data_with_invalid_data
+    collect_and_send_data(client, send_to_iothub_mock)
+TypeError: collect_and_send_data() takes 1 positional argument but 2 were given
 
-    def test_collect_and_send_data_with_valid_data(self):
-        # Create a mock function for send_to_iothub
-        send_to_iothub_mock = Mock()
+======================================================================
+ERROR: test_collect_and_send_data_with_valid_data (__main__.TestModbusClient)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "d:\OneDrive - LTTS\Desktop\ModbusTcp\test.py", line 27, in test_collect_and_send_data_with_valid_data
+    collect_and_send_data(client, send_to_iothub_mock)
+TypeError: collect_and_send_data() takes 1 positional argument but 2 were given
 
-        # Call the function with the mock send_to_iothub
-        collect_and_send_data(Mock(read_holding_registers=Mock(return_value=Mock(registers=[100, 220, 10, 0]))), send_to_iothub_mock)
+----------------------------------------------------------------------
+Ran 3 tests in 0.001s
 
-        # Assertions
-        send_to_iothub_mock.assert_called_once_with({
-            "properties": {
-                "energy_consumption": 100,
-                "voltage": 220,
-                "current": 10,
-                "power": 0
-            }
-        })
-
-    def test_collect_and_send_data_with_invalid_data(self):
-        # Create a mock function for send_to_iothub
-        send_to_iothub_mock = Mock()
-
-        # Call the function with the mock send_to_iothub
-        collect_and_send_data(Mock(read_holding_registers=Mock(return_value=Mock(registers=[50, -10, 5, 300]))), send_to_iothub_mock)
-
-        # Assertions
-        send_to_iothub_mock.assert_not_called()
-
-    def test_collect_and_send_data_with_empty_response(self):
-        # Create a mock function for send_to_iothub
-        send_to_iothub_mock = Mock()
-
-        # Call the function with the mock send_to_iothub
-        collect_and_send_data(Mock(read_holding_registers=Mock(return_value=Mock(registers=[]))), send_to_iothub_mock)
-
-        # Assertions
-        send_to_iothub_mock.assert_not_called()
-
-if __name__ == '__main__':
-    unittest.main()
+FAILED (errors=3)
