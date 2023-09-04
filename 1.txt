@@ -1,55 +1,32 @@
-from pymodbus.client import ModbusTcpClient
-import random
-import time
-from azure.iot.device import IoTHubModuleClient
+from azure.iot.device import IoTHubModuleClient, Message
+from azure.iot.device.iothub.aio import IoTHubModuleClient
 
-CONNECTION_STRING = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=energydevicemeter;SharedAccessKey=QWn2PcGnFhkYFvwgmhRVnSMaqtiIVHd41s1ISUQhUFs=s"
+import asyncio
+import mainenc
 
-def send_to_iothub(data):
-    try:
-        module_client = IoTHubModuleClient.create_from_connection_string(CONNECTION_STRING)
-        module_client.connect()
-        module_client.patch_twin_reported_properties(data)
-        print(data)
-        module_client.disconnect()
-    except Exception as e:
-        print("Error sending data to IoT Hub:", str(e))
+async def on_twin_desired_properties_update(patch):
+    print("Getting twin:")
+    print(patch)
+    if patch:
+        devices = patch
+        module_client = IoTHubModuleClient(devices)
+        def set_connection_callback():
+            mainenc.set_connection(devices, module_client, Message)
+        module_client.schedule_method("setConnection", set_connection_callback)
 
-def collect_and_send_data(client):
-    try:
-        energy_consumption_address = 0x0000
-        energy_consumption_value = client.read_holding_registers(energy_consumption_address, count=1, unit=0).registers[0]
+async def main():
+    module_client = IoTHubModuleClient.create_from_edge_environment()
 
-        voltage_address = 0x0001
-        voltage_value = client.read_holding_registers(voltage_address, count=1, unit=0).registers[0]
+    async def connect():
+        await module_client.connect()
 
-        current_address = 0x0002
-        current_value = client.read_holding_registers(current_address, count=1, unit=0).registers[0]
+    async def wait():
+        await module_client.wait_for_twin_desired_properties_patch_async()
 
-        power_factor_address = 0x0003
-        power_factor_value = client.read_holding_registers(power_factor_address, count=1, unit=0).registers[0]
-        
-        telemetry = {
-            "properties": {
-                "energy_consumption": energy_consumption_value,
-                "voltage": voltage_value,
-                "current": current_value,
-                "power": power_factor_value
-            }
-        }
-        time.sleep(1)
-        send_to_iothub(telemetry)
-        
-    except Exception as e:
-        print("An error has occurred:", e)
+    twin_patch_listener = module_client.on_twin_desired_properties_patch_received
+    twin_patch_listener.on_twin_desired_properties_patch_received = on_twin_desired_properties_update
+
+    await asyncio.gather(connect(), wait())
 
 if __name__ == "__main__":
-    client = ModbusTcpClient('3.86.56.32', port=2109)
-    client.connect()
-    print("Client Connected!")
-    try:
-        while True:
-            collect_and_send_data(client)
-            
-    except KeyboardInterrupt:
-        print("Simulation stopped.")
+    asyncio.run(main())
