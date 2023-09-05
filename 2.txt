@@ -1,25 +1,22 @@
-import unittest
-from main import send_to_iothub
+import random
+import time
+from azure.iot.device import IoTHubModuleClient
+def send_to_iothub(data):
+    try:
+        CONNECTION_STRING = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=energydevicemeter;SharedAccessKey=QWn2PcGnFhkYFvwgmhRVnSMaqtiIVHd41s1ISUQhUFs=s"
+        module_client = IoTHubModuleClient.create_from_connection_string(CONNECTION_STRING)
+        module_client.connect()
+        print("connected")
+        module_client.patch_twin_reported_properties(data)
+        print(data)
+        module_client.disconnect()
+    except Exception as e:
+        print("Error sending data to IoT Hub:", str(e))
 
-class TestSendToIoTHub(unittest.TestCase):
+if __name__ == "__main__":
+    while True:
+        data=random.randint(1,100)
+        print(data)
+        send_to_iothub(data)
 
-    def test_send_to_iothub_successful(self):
-        # Replace with test data and expected results
-        data = {"properties": {"key1": "value1"}}
-        expected_message = "Successfully sent data to IoT Hub"
-        
-        # Call the send_to_iothub function and assert the result
-        result = send_to_iothub(data)
-        self.assertEqual(result, expected_message, "Assertion failed: Expected '{}', but got '{}'".format(expected_message, result))
 
-    def test_send_to_iothub_with_exception(self):
-        # Replace with test data that triggers an exception
-        data = {"properties": {"invalid_key": "value"}}
-        expected_message = "Error sending data to IoT Hub"
-        
-        # Call the send_to_iothub function and assert the result
-        result = send_to_iothub(data)
-        self.assertEqual(result, expected_message, "Assertion failed: Expected '{}', but got '{}'".format(expected_message, result))
-
-if __name__ == '__main__':
-    unittest.main()
