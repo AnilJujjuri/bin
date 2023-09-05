@@ -1,5 +1,5 @@
 import unittest
-from main import initialize_modbus_client  # Import the initialize_modbus_client function
+from main import initialize_modbus_client
 
 class TestModbusClientConnection(unittest.TestCase):
 
@@ -7,12 +7,19 @@ class TestModbusClientConnection(unittest.TestCase):
         # Get the Modbus client instance from the main file
         client = initialize_modbus_client()
 
-        # Perform your connection testing here, e.g., checking if it's connected
-        is_connected = client.is_socket_open()
-        self.assertTrue(is_connected)
+        try:
+            # Check if the client is connected before running the test
+            is_connected = client.is_socket_open()
+            self.assertTrue(is_connected, "Modbus client is not connected")
 
-        # Close the client connection after testing
-        client.close()
+            # Perform other test-specific checks related to the client connection here
+
+        except Exception as e:
+            self.fail(f"An error occurred during the test: {str(e)}")
+
+        finally:
+            # Close the client connection after testing
+            client.close()
 
 if __name__ == '__main__':
     unittest.main()
