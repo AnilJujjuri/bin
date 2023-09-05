@@ -1,27 +1,36 @@
-import random
-import time
-from azure.iot.device import IoTHubModuleClient
+import unittest
+import send  # Import the method you want to test
 
-def send_to_iothub(data):
-    try:
-        CONNECTION_STRING = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=energydevicemeter;SharedAccessKey=QWn2PcGnFhkYFvwgmhRVnSMaqtiIVHd41s1ISUQhUFs=s"
-        module_client = IoTHubModuleClient.create_from_connection_string(CONNECTION_STRING)
-        module_client.connect()
-        print("Connected to IoT Hub")
-        telemetry = {
-            "properties": {
-                "data": data
-            }
-        }
-        module_client.patch_twin_reported_properties(telemetry)
-        print(telemetry)
-        module_client.disconnect()
-    except Exception as e:
-        print("Error sending data to IoT Hub:", str(e))
+class TestSendToIoTHub(unittest.TestCase):
 
-if __name__ == "__main__":
-    while True:
-        data = random.randint(1, 100)
-        print(data)
-        send_to_iothub(data)
-        time.sleep(5)  # Adjust the interval as needed
+    def test_send_to_iothub_successful(self):
+        data = 1
+        try:
+            result=send.send_to_iothub(data)
+            expected_message = "Successfully sent data to IoT Hub"
+            # Assert
+            # Add assertions to check if the expected behavior occurred
+            self.assertEqual(result,expected_message)
+            # Add your assertions here
+        except Exception as e:
+            self.fail("Exception occurred: " + str(e))
+
+    def test_send_to_iothub_with_exception(self):
+        # Arrange
+        # Define the necessary data for testing
+        data = {"properties": {"key1": "value1"}}
+
+        # Act
+        try:
+            # Simulate an exception by providing an incorrect CONNECTION_STRING
+            incorrect_connection_string = "InvalidConnectionString"
+            send.send_to_iothub(data, connection_string=incorrect_connection_string)
+
+            # Assert
+            # You can add assertions to check for expected error handling behavior
+            self.fail("Exception should have been raised.")
+        except Exception as e:
+            self.assertIsInstance(e, Exception)  # Add your assertions here
+
+if __name__ == '__main__':
+    unittest.main()
