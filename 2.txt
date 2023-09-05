@@ -1,10 +1,25 @@
-C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\azure\iot\device\common\http_transport.py:72: DeprecationWarning: ssl.PROTOCOL_TLSv1_2 is deprecated
-  ssl_context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLSv1_2)
-C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\azure\iot\device\common\mqtt_transport.py:324: DeprecationWarning: ssl.PROTOCOL_TLSv1_2 is deprecated
-  ssl_context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLSv1_2)
-{'properties': {'key1': 'value1'}}
-..
-----------------------------------------------------------------------
-Ran 2 tests in 0.355s
+import unittest
+from main import send_to_iothub
 
-OK
+class TestSendToIoTHub(unittest.TestCase):
+
+    def test_send_to_iothub_successful(self):
+        # Replace with test data and expected results
+        data = {"properties": {"key1": "value1"}}
+        expected_message = "Successfully sent data to IoT Hub"
+        
+        # Call the send_to_iothub function and assert the result
+        result = send_to_iothub(data)
+        self.assertEqual(result, expected_message, "Assertion failed: Expected '{}', but got '{}'".format(expected_message, result))
+
+    def test_send_to_iothub_with_exception(self):
+        # Replace with test data that triggers an exception
+        data = {"properties": {"invalid_key": "value"}}
+        expected_message = "Error sending data to IoT Hub"
+        
+        # Call the send_to_iothub function and assert the result
+        result = send_to_iothub(data)
+        self.assertEqual(result, expected_message, "Assertion failed: Expected '{}', but got '{}'".format(expected_message, result))
+
+if __name__ == '__main__':
+    unittest.main()
