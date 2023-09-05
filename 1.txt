@@ -1,71 +1,9 @@
-import unittest
-from unittest.mock import MagicMock
-from main import on_twin_desired_properties_update, main, connect, wait
-
-class TestIoTModule(unittest.TestCase):
-
-    def test_on_twin_desired_properties_update(self):
-        # Create a sample patch dictionary
-        patch = {"properties": {"device_id": "device_001"}}
-
-        # Create a mock module client
-        module_client = MagicMock()
-
-        # Call the function with the mock client and patch
-        on_twin_desired_properties_update(patch)
-
-        # Ensure that the mock module_client.schedule_method was called with the expected arguments
-        module_client.schedule_method.assert_called_once_with("setConnection", MagicMock())
-
-    def test_main(self):
-        # Create a mock module client
-        module_client = MagicMock()
-
-        # Create a mock twin_patch_listener
-        twin_patch_listener = MagicMock()
-        module_client.on_twin_desired_properties_patch_received = twin_patch_listener
-
-        # Set up asyncio mocks
-        asyncio_mock = MagicMock()
-        asyncio_mock.gather = MagicMock()
-        asyncio_mock.run = MagicMock()
-
-        # Mock the asyncio functions
-        asyncio_mock.run.side_effect = lambda main_coro: main_coro
-
-        # Mock asyncio.create_task
-        asyncio_mock.create_task = MagicMock()
-
-        # Replace the asyncio module with the mock
-        import sys
-        sys.modules['asyncio'] = asyncio_mock
-
-        # Call the main function
-        main()
-
-        # Ensure that the asyncio functions were called as expected
-        asyncio_mock.gather.assert_called_once_with(MagicMock(), MagicMock())
-        asyncio_mock.run.assert_called_once()
-
-    def test_connect(self):
-        # Create a mock module client
-        module_client = MagicMock()
-
-        # Call the connect function
-        connect(module_client)
-
-        # Ensure that module_client.connect was called
-        module_client.connect.assert_called_once()
-
-    def test_wait(self):
-        # Create a mock module client
-        module_client = MagicMock()
-
-        # Call the wait function
-        wait(module_client)
-
-        # Ensure that module_client.wait_for_twin_desired_properties_patch_async was called
-        module_client.wait_for_twin_desired_properties_patch_async.assert_called_once()
-
-if __name__ == '__main__':
-    unittest.main()
+def send_to_iothub(data):
+    try:
+        module_client = IoTHubModuleClient.create_from_connection_string(CONNECTION_STRING)
+        module_client.connect()
+        module_client.patch_twin_reported_properties(data)
+        print(data)
+        module_client.disconnect()
+    except Exception as e:
+        print("Error sending data to IoT Hub:", str(e))
