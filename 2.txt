@@ -6,12 +6,11 @@ class TestSendToIoTHub(unittest.TestCase):
     def test_send_to_iothub_successful(self):
         data = 1
         try:
-            result=send.send_to_iothub(data)
+            result = send.send_to_iothub(data)
             expected_message = "Successfully sent data to IoT Hub"
             # Assert
             # Add assertions to check if the expected behavior occurred
-            self.assertEqual(result,expected_message)
-            # Add your assertions here
+            self.assertEqual(result, expected_message)
         except Exception as e:
             self.fail("Exception occurred: " + str(e))
 
@@ -33,4 +32,13 @@ class TestSendToIoTHub(unittest.TestCase):
             self.assertIsInstance(e, Exception)  # Add your assertions here
 
 if __name__ == '__main__':
-    unittest.main()
+    # Run the tests and get the test result
+    test_result = unittest.TextTestRunner(verbosity=2).run(unittest.TestLoader().loadTestsFromTestCase(TestSendToIoTHub))
+
+    # Get the number of passed and failed tests
+    num_passed = test_result.testsRun - len(test_result.failures) - len(test_result.errors)
+    num_failed = len(test_result.failures) + len(test_result.errors)
+
+    # Display the results
+    print(f"Passed: {num_passed}")
+    print(f"Failed: {num_failed}")
