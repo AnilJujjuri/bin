@@ -1,39 +1,18 @@
 import unittest
-from unittest.mock import Mock, patch
-from main import send_to_iothub  # Import the method you want to test
+from main import initialize_modbus_client  # Import the initialize_modbus_client function
 
-class TestSendToIoTHub(unittest.TestCase):
-    
-    @patch('main.IoTHubModuleClient')
-    def test_send_to_iothub_successful(self, MockIoTHubModuleClient):
-        # Arrange
-        mock_module_client = MockIoTHubModuleClient.return_value
-        data = {"properties": {"key1": "value1"}}
-        
-        # Act
-        send_to_iothub(data)
-        
-        # Assert
-        mock_module_client.create_from_connection_string.assert_called_once_with(CONNECTION_STRING)
-        mock_module_client.connect.assert_called_once()
-        mock_module_client.patch_twin_reported_properties.assert_called_once_with(data)
-        mock_module_client.disconnect.assert_called_once()
+class TestModbusClientConnection(unittest.TestCase):
 
-    @patch('main.IoTHubModuleClient')
-    def test_send_to_iothub_with_exception(self, MockIoTHubModuleClient):
-        # Arrange
-        mock_module_client = MockIoTHubModuleClient.return_value
-        mock_module_client.connect.side_effect = Exception("Connection failed")
-        data = {"properties": {"key1": "value1"}}
-        
-        # Act
-        send_to_iothub(data)
-        
-        # Assert
-        mock_module_client.create_from_connection_string.assert_called_once_with(CONNECTION_STRING)
-        mock_module_client.connect.assert_called_once()
-        mock_module_client.patch_twin_reported_properties.assert_not_called()
-        mock_module_client.disconnect.assert_not_called()
+    def test_modbus_client_connection(self):
+        # Get the Modbus client instance from the main file
+        client = initialize_modbus_client()
+
+        # Perform your connection testing here, e.g., checking if it's connected
+        is_connected = client.is_socket_open()
+        self.assertTrue(is_connected)
+
+        # Close the client connection after testing
+        client.close()
 
 if __name__ == '__main__':
     unittest.main()
