@@ -1,39 +1,10 @@
-import unittest
-from main import send_to_iothub  # Import the method you want to test
+C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\azure\iot\device\common\http_transport.py:72: DeprecationWarning: ssl.PROTOCOL_TLSv1_2 is deprecated
+  ssl_context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLSv1_2)
+C:\Users\40020507\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.10_qbz5n2kfra8p0\LocalCache\local-packages\Python310\site-packages\azure\iot\device\common\mqtt_transport.py:324: DeprecationWarning: ssl.PROTOCOL_TLSv1_2 is deprecated
+  ssl_context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLSv1_2)
+{'properties': {'key1': 'value1'}}
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.355s
 
-class TestSendToIoTHub(unittest.TestCase):
-    
-    def test_send_to_iothub_successful(self):
-        # Arrange
-        # Define the necessary data for testing
-        data = {"properties": {"key1": "value1"}}
-        
-        # Act
-        try:
-            send_to_iothub(data)
-            
-            # Assert
-            # Add assertions to check if the expected behavior occurred
-            self.assertTrue(True)  # Add your assertions here
-        except Exception as e:
-            self.fail("Exception occurred: " + str(e))
-
-    def test_send_to_iothub_with_exception(self):
-        # Arrange
-        # Define the necessary data for testing
-        data = {"properties": {"key1": "value1"}}
-        
-        # Act
-        try:
-            # Simulate an exception by providing an incorrect CONNECTION_STRING
-            incorrect_connection_string = "InvalidConnectionString"
-            send_to_iothub(data, connection_string=incorrect_connection_string)
-            
-            # Assert
-            # You can add assertions to check for expected error handling behavior
-            self.fail("Exception should have been raised.")
-        except Exception as e:
-            self.assertIsInstance(e, Exception)  # Add your assertions here
-
-if __name__ == '__main__':
-    unittest.main()
+OK
