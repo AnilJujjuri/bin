@@ -1,46 +1,43 @@
-'use strict';
+import asyncio
+from azure.iot.device.aio import IoTHubModuleClient
 
-var Transport = require('./node_modules/azure-iot-device-amqp').Amqp; // require('azure-iot-device-mqtt').Mqtt;
+# Define the set_connection function
+def set_connection(devices, client, message_class):
+    # Implement the logic to set the connection
+    # This is where you can add your specific code to connect to devices
 
-var Client = require('./node_modules/azure-iot-device/device').ModuleClient;
-var Message = require('./node_modules/azure-iot-device/device').Message;
+async def main():
+    # Create an instance of the IoTHubModuleClient.
+    module_client = IoTHubModuleClient.create_from_edge_environment()
 
-var connector = require('./connector');
+    # Connect the module client to the IoT Edge runtime.
+    await module_client.connect()
 
-Client.fromEnvironment(Transport, function (err, client) {
-  // Client.fromConnectionString(Transport, function (err, client) {
-  if (err) {
-    throw err;
-  } else {
-    client.on('error', function (err) {
-      throw err;
-    });
+    print("IoT Hub module client initialized")
 
-    // connect to the Edge instance
-    client.open(function (err) {
-      if (err) {
-        throw err;
-      } else {
-        console.log('IoT Hub module client initialized');
+    async def on_desired_properties_update(properties):
+        print("Received desired properties:")
+        print(properties)
 
-        client.getTwin(function (err, twin) {
-          if (err) {
-            console.error('Error getting twin: ' + err.message);
-          } else {
-            twin.on('properties.desired', function (delta) {
-              console.log('Getting twin: ');
-              console.log(delta);
-              if (delta) {
-                this.devices = delta;
-                setTimeout(() => {
-                  connector.setConnection(this.devices, client, Message);
-                }, 1000);
-                // connector(delta, client)
-              }
-            });
-          }
-        });
-      }
-    });
-  }
-});
+        # Call set_connection function with the received properties
+        set_connection(properties, module_client, None)
+
+    # Set up a callback for desired properties updates.
+    module_client.on_twin_desired_properties_patch_received = on_desired_properties_update
+
+    # Wait for the module to be twin-enabled.
+    while not module_client.is_connected:
+        await asyncio.sleep(1)
+
+    print("Module is twin-enabled")
+
+    try:
+        # Keep the module running.
+        while True:
+            await asyncio.sleep(1)
+
+    except KeyboardInterrupt:
+        print("IoT Hub module client stopped")
+
+if __name__ == "__main__":
+    asyncio.run(main())
