@@ -1,43 +1,29 @@
-import asyncio
-from azure.iot.device.aio import IoTHubModuleClient
+from azure.iot.device import IoTHubDeviceClient, exceptions
 
-# Define the set_connection function
-def set_connection(devices, client, message_class):
-    # Implement the logic to set the connection
-    # This is where you can add your specific code to connect to devices
+# Replace with your device's connection string
+connection_string = "your_device_connection_string"
 
-async def main():
-    # Create an instance of the IoTHubModuleClient.
-    module_client = IoTHubModuleClient.create_from_edge_environment()
+try:
+    # Initialize the device client
+    device_client = IoTHubDeviceClient.create_from_connection_string(connection_string)
 
-    # Connect the module client to the IoT Edge runtime.
-    await module_client.connect()
+    # Get the device twin
+    twin = device_client.get_twin()
+    
+    # Access the reported properties
+    reported_properties = twin.properties.reported
 
-    print("IoT Hub module client initialized")
+    # Print the last updated reported value
+    if reported_properties:
+        last_updated_value = reported_properties[-1]
+        print("Last Updated Reported Value:")
+        for key, value in last_updated_value.items():
+            print(f"{key}: {value}")
+    else:
+        print("No reported properties found.")
 
-    async def on_desired_properties_update(properties):
-        print("Received desired properties:")
-        print(properties)
+    # Close the connection
+    device_client.disconnect()
 
-        # Call set_connection function with the received properties
-        set_connection(properties, module_client, None)
-
-    # Set up a callback for desired properties updates.
-    module_client.on_twin_desired_properties_patch_received = on_desired_properties_update
-
-    # Wait for the module to be twin-enabled.
-    while not module_client.is_connected:
-        await asyncio.sleep(1)
-
-    print("Module is twin-enabled")
-
-    try:
-        # Keep the module running.
-        while True:
-            await asyncio.sleep(1)
-
-    except KeyboardInterrupt:
-        print("IoT Hub module client stopped")
-
-if __name__ == "__main__":
-    asyncio.run(main())
+except exceptions.IoTHubError as iothub_error:
+    print("Error: {}".format(iothub_error))
