@@ -1,25 +1,46 @@
-import unittest
-from main import initialize_modbus_client
+'use strict';
 
-class TestModbusClientConnection(unittest.TestCase):
+var Transport = require('./node_modules/azure-iot-device-amqp').Amqp; // require('azure-iot-device-mqtt').Mqtt;
 
-    def test_modbus_client_connection(self):
-        # Get the Modbus client instance from the main file
-        client = initialize_modbus_client()
+var Client = require('./node_modules/azure-iot-device/device').ModuleClient;
+var Message = require('./node_modules/azure-iot-device/device').Message;
 
-        try:
-            # Check if the client is connected before running the test
-            is_connected = client.is_socket_open()
-            self.assertTrue(is_connected, "Modbus client is not connected")
+var connector = require('./connector');
 
-            # Perform other test-specific checks related to the client connection here
+Client.fromEnvironment(Transport, function (err, client) {
+  // Client.fromConnectionString(Transport, function (err, client) {
+  if (err) {
+    throw err;
+  } else {
+    client.on('error', function (err) {
+      throw err;
+    });
 
-        except Exception as e:
-            self.fail(f"An error occurred during the test: {str(e)}")
+    // connect to the Edge instance
+    client.open(function (err) {
+      if (err) {
+        throw err;
+      } else {
+        console.log('IoT Hub module client initialized');
 
-        finally:
-            # Close the client connection after testing
-            client.close()
-
-if __name__ == '__main__':
-    unittest.main()
+        client.getTwin(function (err, twin) {
+          if (err) {
+            console.error('Error getting twin: ' + err.message);
+          } else {
+            twin.on('properties.desired', function (delta) {
+              console.log('Getting twin: ');
+              console.log(delta);
+              if (delta) {
+                this.devices = delta;
+                setTimeout(() => {
+                  connector.setConnection(this.devices, client, Message);
+                }, 1000);
+                // connector(delta, client)
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+});
