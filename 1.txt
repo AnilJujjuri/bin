@@ -1,29 +1,63 @@
-from azure.iot.device import IoTHubDeviceClient, exceptions
 
-# Replace with your device's connection string
-connection_string = "your_device_connection_string"
+
+import socket
+
+from pyModbusTCP.server import ModbusServer
+
+import random
+
+import time
+
+hostname = socket.gethostname()    
+
+server_ip_address = socket.gethostbyname(hostname)
+
+server_port = 502
+
+print(f"[+]Info : IP Address for Modbus Server : {server_ip_address}")
+
+ 
+
+server = ModbusServer(server_ip_address, server_port, no_block=True)
+
+server.start()
+
+ 
+
+print(f"[+]info : Server is Online on IP : {server_ip_address} and PORT : {server_port} ")
+
+ 
+
+ 
 
 try:
-    # Initialize the device client
-    device_client = IoTHubDeviceClient.create_from_connection_string(connection_string)
 
-    # Get the device twin
-    twin = device_client.get_twin()
-    
-    # Access the reported properties
-    reported_properties = twin.properties.reported
+    while True:
 
-    # Print the last updated reported value
-    if reported_properties:
-        last_updated_value = reported_properties[-1]
-        print("Last Updated Reported Value:")
-        for key, value in last_updated_value.items():
-            print(f"{key}: {value}")
-    else:
-        print("No reported properties found.")
+        energy_consumption=random.randint(0, 100)
 
-    # Close the connection
-    device_client.disconnect()
+        voltage = random.randint(0, 100)
 
-except exceptions.IoTHubError as iothub_error:
-    print("Error: {}".format(iothub_error))
+        current = random.randint(50, 200)
+
+        power = random.randint(90,500 )
+
+        # print(f"{temperature} and {pressure}")
+
+        # Update holding registers
+
+        server.data_bank.set_holding_registers(0, [energy_consumption])
+
+        server.data_bank.set_holding_registers(1, [voltage])
+
+        server.data_bank.set_holding_registers(2, [current])
+
+        server.data_bank.set_holding_registers(3, [power])
+
+        print(server.data_bank.get_holding_registers(0,4))
+        time.sleep(1)
+        # You can add other code here if needed
+
+except KeyboardInterrupt:
+
+    server.stop()
