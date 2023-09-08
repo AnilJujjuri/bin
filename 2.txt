@@ -1,21 +1,186 @@
-from pymodbus.client import ModbusTcpClient
-
-def initialize_modbus_client():
-    # Provide the IP address and port of the Modbus server
-    server_ip = '3.86.56.32'
-    server_port = 2109
-
-    # Create and return a Modbus client instance
-    client = ModbusTcpClient(server_ip, port=server_port)
-    client.connect()
-    return client
-
-if __name__ == "__main__":
-    client = initialize_modbus_client()
-    print("Client Connected!")
-
-    try:
-        while True:
-            collect_and_send_data(client)
-    except KeyboardInterrupt:
-        print("Simulation stopped.")
+Twin patch received:
+{'$version': 1}
+{'desired': {'$version': 1}, 'reported': {'properties': {'temperature': 32, 'pressure': 64}, 'energy': 12, 'voltage': 39, 'current': 64, 'power': 128, 'connectivity': 'cellular', '$version': 5070}}
+Starting data acquisition task
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Successfully sent data to IoT Hub--->  {'energy': 41, 'voltage': 87, 'current': 155, 'power': 152}
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Exception caught in background thread.  Unable to handle.
+['azure.iot.device.common.transport_exceptions.ConnectionDroppedError: Unexpected disconnection\n']
+Successfully sent data to IoT Hub--->  {'energy': 93, 'voltage': 91, 'current': 51, 'power': 191}
