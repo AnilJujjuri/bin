@@ -1,71 +1,39 @@
-import unittest
-import io
-import sys
+import connector
 import time
-from your_module_name import create_client_with_retry
+from azure.iot.device import IoTHubModuleClient, Message
 
-class TestCreateClientWithRetry(unittest.TestCase):
-    def test_successful_connection(self):
-        # Save the original sys.stdout for later comparison
-        original_stdout = sys.stdout
-        sys.stdout = io.StringIO()
+CONNECTION_STRING = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=edgeDevive-opcua;SharedAccessKey=jiDsujbUvP2MySzcHAg+eDYEKf97zrh+YTqM6sGjkQU="
 
-        # Mock a successful client creation
-        def mock_create_client(*args, **kwargs):
-            return 'mocked_client'
+def create_client_with_retry(max_retries=3, retry_delay=5):
+    retries = 0
+    client = None
 
-        with unittest.mock.patch('azure.iot.device.IoTHubModuleClient.create_from_connection_string', side_effect=mock_create_client):
-            # Call the function with max_retries=3, retry_delay=1
-            client = create_client_with_retry(max_retries=3, retry_delay=1)
+    while retries < max_retries:
+        try:
+            client = IoTHubModuleClient.create_from_connection_string(CONNECTION_STRING)
+            break  # Connection successful, exit the loop
+        except Exception as e:
+            print("Error occurred:", e)
+            retries += 1
+            print(f"Retrying in {retry_delay} seconds...")
+            time.sleep(retry_delay)
 
-        # Restore sys.stdout
-        sys.stdout = original_stdout
+    if client:
+        def twin_patch_handler(twin_patch):
+            print("Twin patch received:")
+            print(twin_patch)
 
-        # Assert that the client was created and no retries were needed
-        self.assertEqual(client, 'mocked_client')
-        self.assertIn("Client connected successfully", sys.stdout.getvalue())
+        try:
+            client.on_twin_desired_properties_patch_received = twin_patch_handler
+        except:
+            client.shutdown()
+        try:
+            twin = client.get_twin()
+            connector.setConnection(twin, client, Message)
+        except Exception as e:
+            print(e)
+    else:
+        print(f"Failed to create the client after {max_retries} retries.")
 
-    def test_failed_connection_with_retry(self):
-        # Save the original sys.stdout for later comparison
-        original_stdout = sys.stdout
-        sys.stdout = io.StringIO()
-
-        # Mock exceptions on the first two attempts
-        def mock_create_client(*args, **kwargs):
-            if mock_create_client.call_count < 3:
-                raise Exception(f'Attempt {mock_create_client.call_count}')
-            return 'mocked_client'
-
-        with unittest.mock.patch('azure.iot.device.IoTHubModuleClient.create_from_connection_string', side_effect=mock_create_client):
-            # Call the function with max_retries=3, retry_delay=1
-            client = create_client_with_retry(max_retries=3, retry_delay=1)
-
-        # Restore sys.stdout
-        sys.stdout = original_stdout
-
-        # Assert that the client was created after two retries
-        self.assertEqual(client, 'mocked_client')
-        self.assertIn("Client connected successfully after 2 retries", sys.stdout.getvalue())
-
-    def test_failed_connection_without_retry(self):
-        # Save the original sys.stdout for later comparison
-        original_stdout = sys.stdout
-        sys.stdout = io.StringIO()
-
-        # Mock exceptions on all attempts
-        def mock_create_client(*args, **kwargs):
-            raise Exception(f'Attempt {mock_create_client.call_count}')
-
-        with unittest.mock.patch('azure.iot.device.IoTHubModuleClient.create_from_connection_string', side_effect=mock_create_client):
-            # Call the function with max_retries=3, retry_delay=1
-            client = create_client_with_retry(max_retries=3, retry_delay=1)
-
-        # Restore sys.stdout
-        sys.stdout = original_stdout
-
-        # Assert that the client is None because retries exceeded the limit
-        self.assertIsNone(client)
-        self.assertIn("Failed to connect after 3 retries", sys.stdout.getvalue())
-
-if __name__ == '__main__':
-    unittest.main()
+if __name__ == "__main__":
+    create_client_with_retry()
