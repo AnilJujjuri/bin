@@ -1,63 +1,39 @@
-
-
-import socket
-
-from pyModbusTCP.server import ModbusServer
-
-import random
-
+import connector
 import time
+from azure.iot.device import IoTHubModuleClient, Message
 
-hostname = socket.gethostname()    
+CONNECTION_STRING = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=edgeDevive-opcua;SharedAccessKey=jiDsujbUvP2MySzcHAg+eDYEKf97zrh+YTqM6sGjkQU="
 
-server_ip_address = socket.gethostbyname(hostname)
+def create_client_with_retry(max_retries=3, retry_delay=5):
+    retries = 0
+    client = None
 
-server_port = 502
+    while retries < max_retries:
+        try:
+            client = IoTHubModuleClient.create_from_connection_string(CONNECTION_STRING)
+            break  # Connection successful, exit the loop
+        except Exception as e:
+            print("Error occurred:", e)
+            retries += 1
+            print(f"Retrying in {retry_delay} seconds...")
+            time.sleep(retry_delay)
 
-print(f"[+]Info : IP Address for Modbus Server : {server_ip_address}")
+    if client:
+        def twin_patch_handler(twin_patch):
+            print("Twin patch received:")
+            print(twin_patch)
 
- 
+        try:
+            client.on_twin_desired_properties_patch_received = twin_patch_handler
+        except:
+            client.shutdown()
+        try:
+            twin = client.get_twin()
+            connector.setConnection(twin, client, Message)
+        except Exception as e:
+            print(e)
+    else:
+        print(f"Failed to create the client after {max_retries} retries.")
 
-server = ModbusServer(server_ip_address, server_port, no_block=True)
-
-server.start()
-
- 
-
-print(f"[+]info : Server is Online on IP : {server_ip_address} and PORT : {server_port} ")
-
- 
-
- 
-
-try:
-
-    while True:
-
-        energy_consumption=random.randint(0, 100)
-
-        voltage = random.randint(0, 100)
-
-        current = random.randint(50, 200)
-
-        power = random.randint(90,500 )
-
-        # print(f"{temperature} and {pressure}")
-
-        # Update holding registers
-
-        server.data_bank.set_holding_registers(0, [energy_consumption])
-
-        server.data_bank.set_holding_registers(1, [voltage])
-
-        server.data_bank.set_holding_registers(2, [current])
-
-        server.data_bank.set_holding_registers(3, [power])
-
-        print(server.data_bank.get_holding_registers(0,4))
-        time.sleep(1)
-        # You can add other code here if needed
-
-except KeyboardInterrupt:
-
-    server.stop()
+if __name__ == "__main__":
+    create_client_with_retry()
