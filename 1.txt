@@ -1,19 +1,17 @@
 from azure.iot.device import IoTHubModuleClient
 
-def get_iot_hub_connection_string():
+def refresh_module_twin(client):
     try:
-        # Create an IoT Hub module client from the edge environment
-        client = IoTHubModuleClient.create_from_edge_environment()
+        # Clear the twin cache
+        client._twin_cache.clear()
         
-        # Get the IoT Hub connection string from the client
-        connection_string = client.connection_string
-        return connection_string
+        # Fetch the updated twin
+        twin = client.get_twin()
+        return twin
     except Exception as e:
-        print("Error fetching connection string:", e)
+        print("Error fetching module twin:", e)
 
 if __name__ == "__main__":
-    iot_hub_connection_string = get_iot_hub_connection_string()
-    if iot_hub_connection_string:
-        print("IoT Hub Connection String:", iot_hub_connection_string)
-    else:
-        print("Failed to fetch the IoT Hub Connection String.")
+    client = IoTHubModuleClient.create_from_edge_environment()
+    updated_twin = refresh_module_twin(client)
+    print("Updated Module Twin:", updated_twin)
