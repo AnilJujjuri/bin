@@ -1,46 +1,19 @@
-import unittest
-import importlib
+from azure.iot.device import IoTHubModuleClient
 
-# Import your module here (replace 'your_module_name' with the actual name)
-import your_module_name
-
-class TestCreateClientWithRetry(unittest.TestCase):
-    def test_successful_connection(self):
-        # Replace 'your_module_name' with the actual module name
-        module = importlib.import_module('your_module_name')
+def get_iot_hub_connection_string():
+    try:
+        # Create an IoT Hub module client from the edge environment
+        client = IoTHubModuleClient.create_from_edge_environment()
         
-        # Ensure the create_client_with_retry function is defined
-        self.assertTrue(hasattr(module, 'create_client_with_retry'))
-        
-        # Test successful connection
-        # Note: You may need to adjust the retry settings for your specific use case
-        client = module.create_client_with_retry(max_retries=0, retry_delay=0)
-        self.assertIsNotNone(client)
+        # Get the IoT Hub connection string from the client
+        connection_string = client._edge_env.get("IOTEDGE_IOTHUBHOST")
+        return connection_string
+    except Exception as e:
+        print("Error fetching connection string:", e)
 
-    def test_unsuccessful_connection(self):
-        # Replace 'your_module_name' with the actual module name
-        module = importlib.import_module('your_module_name')
-        
-        # Ensure the create_client_with_retry function is defined
-        self.assertTrue(hasattr(module, 'create_client_with_retry'))
-        
-        # Test unsuccessful connection (simulated failure)
-        client = module.create_client_with_retry(max_retries=3, retry_delay=0)
-        self.assertIsNone(client)
-
-    def test_connector_file_and_method_presence(self):
-        # Check if the 'connector' module is present
-        try:
-            import connector
-        except ImportError:
-            connector = None
-
-        # Ensure 'connector' module is imported successfully
-        self.assertIsNotNone(connector)
-
-        # Check if the 'setConnection' function is present in the 'connector' module
-        if connector:
-            self.assertTrue(hasattr(connector, 'setConnection'))
-
-if __name__ == '__main__':
-    unittest.main()
+if __name__ == "__main__":
+    iot_hub_connection_string = get_iot_hub_connection_string()
+    if iot_hub_connection_string:
+        print("IoT Hub Connection String:", iot_hub_connection_string)
+    else:
+        print("Failed to fetch the IoT Hub Connection String.")
