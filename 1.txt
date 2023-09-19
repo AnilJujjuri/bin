@@ -1,17 +1,34 @@
-from azure.iot.device import IoTHubModuleClient
+from azure.iot.device import IoTHubModuleClient, Message, IoTHubConnectionStatus
 
-def refresh_module_twin(client):
+def main():
     try:
-        # Clear the twin cache
-        client._twin_cache.clear()
+        # Initialize the IoT Hub module client
+        client = IoTHubModuleClient.create_from_edge_environment()
         
-        # Fetch the updated twin
+        # Check the connection status
+        connection_status = client.get_connection_status()
+        if connection_status == IoTHubConnectionStatus.Connected:
+            print("Client is connected to IoT Hub.")
+        else:
+            print("Client is not connected to IoT Hub.")
+            return  # Exit if not connected
+        
+        # Create a test message
+        message = Message("Test message from IoT Edge module")
+        
+        # Publish the test message to an output (replace with your output name)
+        try:
+            client.send_message_to_output(message, "outputName")
+            print("Message sent successfully.")
+        except Exception as e:
+            print("Error sending message:", e)
+        
+        # Fetch the module twin
         twin = client.get_twin()
-        return twin
+        print("Module Twin:", twin)
+        
     except Exception as e:
-        print("Error fetching module twin:", e)
+        print("Error:", e)
 
 if __name__ == "__main__":
-    client = IoTHubModuleClient.create_from_edge_environment()
-    updated_twin = refresh_module_twin(client)
-    print("Updated Module Twin:", updated_twin)
+    main()
