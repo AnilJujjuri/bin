@@ -6,7 +6,7 @@ def get_iot_hub_connection_string():
         client = IoTHubModuleClient.create_from_edge_environment()
         
         # Get the IoT Hub connection string from the client
-        connection_string = client._edge_env.get("IOTEDGE_IOTHUBHOST")
+        connection_string = client.connection_string
         return connection_string
     except Exception as e:
         print("Error fetching connection string:", e)
