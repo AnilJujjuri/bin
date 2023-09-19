@@ -1,4 +1,4 @@
-from azure.iot.device import IoTHubModuleClient, Message, IoTHubConnectionStatus
+from azure.iot.device import IoTHubModuleClient, Message
 
 def main():
     try:
@@ -6,8 +6,7 @@ def main():
         client = IoTHubModuleClient.create_from_edge_environment()
         
         # Check the connection status
-        connection_status = client.get_connection_status()
-        if connection_status == IoTHubConnectionStatus.Connected:
+        if client.connected:
             print("Client is connected to IoT Hub.")
         else:
             print("Client is not connected to IoT Hub.")
