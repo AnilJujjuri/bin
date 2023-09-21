@@ -1,166 +1,42 @@
-import connector
-import time
-from azure.iot.device import IoTHubModuleClient, Message
-from azure.iot.device import IoTHubDeviceClient
-# import logging
+from azure.iot.device import IoTHubModuleClient
 
-# # Configure the logger
-# logging.basicConfig(filename='example.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# # Example log messages
-# logging.debug('This is a debug message')
-
-
-# CONNECTION_STRING = "HostName=vanderlende-hub-dev-001.azure-devices.net;DeviceId=edgedevice50;ModuleId=modbustcp;SharedAccessKey=odlvCQKuEYw0MMFKdhQm+zlDvKiZ7lOenqg5Pp7UZZ0="
-
-
-def create_client():
-    # Instantiate client
+def set_desired_properties(module_client):
     try:
-        client=IoTHubModuleClient.create_from_edge_environment()
+        # Define the desired properties as a dictionary
+        desired_properties = {
+            "desiredProperty1": "value1",
+            "desiredProperty2": "value2"
+        }
 
-        # client = IoTHubModuleClient.create_from_connection_string(CONNECTION_STRING)
-        client.connect()
-        print(client)
+        # Create a patch object to update the desired properties
+        twin_patch = {
+            "properties": {
+                "desired": desired_properties
+            }
+        }
+
+        # Update the twin with the desired properties
+        module_client.patch_twin_reported_properties(twin_patch)
+
+        print("Desired properties set successfully:")
+        print(desired_properties)
 
     except Exception as e:
-        print("Error occured:", e)
-
-    def twin_patch_handler(twin_patch):
-        print("Twin patch received:")
-        print(twin_patch)
-
-    try:
-        client.on_twin_desired_properties_patch_received = twin_patch_handler
-    except:
-        client.shutdown()
-    try:
-        twin = client.get_twin()
-        print("twin:",twin)
-    except Exception as e:
-        print(e)
-    # print(Message)
-    connector.setConnection(twin, client, Message)
-
-    # return client
-
+        print("Error setting desired properties:", e)
 
 if __name__ == "__main__":
-
-    create_client()
-########################################################################################################
-\from pyModbusTCP.client import ModbusClient
-import time
-import json
-from azure.iot.device import IoTHubModuleClient,Message
-
-def send_to_iothub(data, edgeClient,Message):
-
     try:
-        # CONNECTION_STRING = "HostName=EDGTneerTrainingPractice.azure-devices.net;DeviceId=edgeDevive-opcua;SharedAccessKey=jiDsujbUvP2MySzcHAg+eDYEKf97zrh+YTqM6sGjkQU="
-        # module_client = IoTHubModuleClient.create_from_connection_string(
-        #     CONNECTION_STRING)
-        # module_client.connect()
-        message=json.dumps(data)
-        message=Message(message)
-        edgeClient.send_message(message)
-        # client=edgeClient
-        # # edgeClient.patch_twin_reported_properties(data)
-        # OUTPUT_NAME="telemetry data"
-        # # client.send_message_to_output(data,OUTPUT_NAME)
-        # edgeClient.send_message(data)
-        # module_client.disconnect()
-        print(f"Successfully sent data to IoT Hub--->  {data}")
+        # Create an instance of the IoT Hub module client
+        module_client = IoTHubModuleClient.create_from_edge_environment()
+
+        # Connect to the IoT Hub
+        module_client.connect()
+
+        # Set desired properties
+        set_desired_properties(module_client)
+
+        # Disconnect from IoT Hub
+        module_client.disconnect()
+
     except Exception as e:
-        print("Error sending data to IoT Hub:", str(e))
-
-
-def collect(twin, edgeClient, Message):
-    last_data = None
-    # twin2={
-    #         'desired': {
-    #             '$version': 1,
-    #             'SERVER_IP':"3.86.56.32",
-    #             'SERVER_PORT':2109
-    #         },
-    #         'reported': {
-    #             'properties': {
-    #                 'temperature': 32,
-    #                 'pressure': 64
-    #             },
-    #             '$version': 2326
-    #         }
-    # }
-    # print(twin)
-    SERVER_IP = "3.86.56.32"
-    SERVER_PORT = 2109
-
-    client = ModbusClient(host=SERVER_IP, port=SERVER_PORT)
-
-    if not client.is_open:
-        if not client.open():
-            print(f"Unable to connect to {SERVER_IP}:{SERVER_PORT}")
-            exit(1)
-    try:
-        while True:
-            # Read temperature and pressure values from the server
-            data = client.read_holding_registers(0, 4)
-
-            if data:
-                energy = data[0]
-                voltage = data[1]
-                current = data[2]
-                power = data[3]
-
-                data_to_send = {
-                    "energy": energy,
-                    "voltage": voltage,
-                    "current": current,
-                    "power": power
-                }
-
-                if last_data != data_to_send:
-                    send_to_iothub(data_to_send, edgeClient, Message)
-
-                    last_data = data_to_send
-                else:
-                    pass
-
-                # send_to_iothub(data_to_send,edgeClient)
-                # # print(f"Temperature: {temperature}°C")
-                # # print(f"Pressure: {pressure} hPa")
-                # print(data_to_send)
-                # time.sleep(2)
-            else:
-                print("Failed to read data from the server")
-
-    except KeyboardInterrupt:
-        print("Closing Modbus client...")
-        client.close()
-
-
-def setConnection(twinObj, edgeClient, Message):
-    print(twinObj)
-    myedgeclient = edgeClient
-    myMessage = Message
-
-    global twin
-    twin = twinObj
-
-    if twin:
-        twin = twinObj
-        time.sleep(1)
-        print("Starting data acquisition task")
-
-        collect(twin, myedgeclient, myMessage)
-    else:
-        twin = twinObj
-    print("Updated twin")
-    # print(twinObj)
-    # print(twin)
-
-    # SERVER_IP = "3.86.56.32"
-    # SERVER_PORT = 2109
-
-    # print(SERVER_IP)
-    # print(SERVER_PORT)
+        print("Error:", e)
